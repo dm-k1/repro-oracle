@@ -100,7 +100,7 @@ All functions create, use or check a kit.
 
 ### 5.2 Registry of model handlers
 
-Each analysis type is a handler that defines: how to triage, what to store, how to refit, what is lost.
+Each analysis type is a handler that defines: how to triage, what to store, how to reproduce, what is lost.
 
 - Adding a model = adding a handler.
 - The coverage table in the README/guideline is generated from the registry, so documentation and package cannot contradict each other.
@@ -124,7 +124,7 @@ Each analysis type is a handler that defines: how to triage, what to store, how 
 |---|---|---|
 | `triage()` | share | verdict per route, with reasons |
 | `kit()` | share | builds the kit from a fitted model or formula + data |
-| `refit()` | share | reproduces the results from a kit; must equal the original |
+| `reproduce()` | share | reproduces the results from a kit; must equal the original |
 | `appendix()` | share | writes the markdown appendix (statistics, disclosure check, reason, what is lost) |
 | `synthesize()` | share | (later) synthetic data via synthpop + utility report |
 | `check_*()` | check | consistency checks for t, F, χ², r, CIs |
@@ -147,7 +147,7 @@ Each analysis type is a handler that defines: how to triage, what to store, how 
 
 ## 8. Validation
 
-- Round-trip tests for every ✅ claim: data → kit → refit equals base R / car / lavaan / lme4 to ~1e-8.
+- Round-trip tests for every ✅ claim: data → kit → reproduce equals base R / car / lavaan / lme4 to a scaled difference < 1e-8 (ADR 0005).
 - Random designs: many simulated datasets per handler (unbalanced, missing values, factors, interactions).
 - Refusal tests: every 🔁 and 🔒 case returns the right verdict and message.
 - Known-answer tests for the check direction: consistent and planted-inconsistent cases.
@@ -183,7 +183,7 @@ Prior art to cite: statcheck (Nuijten & Epskamp), JATSdecoder `get.stats()` (Bö
 
 | Version | Contents |
 |---|---|
-| v1 (class) | kit/refit/appendix for: independent + paired t, one-sample t, Pearson, one-way + factorial ANOVA, RM ANOVA, lm with interactions, χ² / categorical logistic, simple mediation (Monte Carlo CI labelled as replacement for the bootstrap CI), standardized effects with declared convention, SEM (ML, complete cases). Checks for t, F, χ², r, CIs. Triage-only (verdict + advice) for multilevel, GLMM, logistic with continuous predictors, mixed models with missing time points, nonparametric tests, SEM with FIML/MLR/WLSMV. |
+| v1 (class) | kit/reproduce/appendix for: independent + paired t, one-sample t, Pearson, one-way + factorial ANOVA, RM ANOVA, lm with interactions, χ² / categorical logistic, simple mediation (Monte Carlo CI labelled as replacement for the bootstrap CI), standardized effects with declared convention, SEM (ML, complete cases). Checks for t, F, χ², r, CIs. Triage-only (verdict + advice) for multilevel, GLMM, logistic with continuous predictors, mixed models with missing time points, nonparametric tests, SEM with FIML/MLR/WLSMV. |
 | v2 | synthetic route via synthpop with utility report; linear random-intercept model validated against lme4 (✅ only for large clusters) |
 | Refuse list (summary route) | GLMMs, logistic/Poisson with continuous predictors, robust/cluster SEs and GEE, mixed models with missing time points, nonparametric tests, bootstrap CIs (Monte Carlo replacement only), SEM with FIML/MLR/WLSMV, random slopes until validated |
 
