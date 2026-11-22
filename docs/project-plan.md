@@ -50,7 +50,7 @@ Verdicts follow the three-condition rule in §3 (`decisions/0004`). "Fails" name
 | | One-sample t | ✅ exact | n, M, SD, test value | — |
 | | χ² | ✅ exact (borderline) | contingency table of counts | fixed note: "for these variables the table *is* the data"; disclosure check required in the appendix |
 | | Nonparametric: Mann-Whitney, Wilcoxon, Kruskal-Wallis | 🔒 raw data | ranks | fails 1: means and SDs do not determine rank tests; the ranks are nearly the data |
-| Correlation | Pearson r | ✅ exact | n, r | — |
+| Correlation | Pearson r | ✅ exact | n, M and SD of both variables, r | — |
 | | Spearman ρ | 🔒 raw data | ranks | fails 1 (as above) |
 | GLM | lm / regression | ✅ exact | n, means and covariance matrix of all model columns (dummies, interactions) | complete cases on model variables only |
 | | Interaction / moderation | ✅ exact | covariance matrix including the product column x·z | product moments cannot be derived from x and z; with it, any centering is reproducible afterwards |
@@ -61,7 +61,7 @@ Verdicts follow the three-condition rule in §3 (`decisions/0004`). "Fails" name
 | | Bootstrap CI | 🔒 not reproducible | raw data + seed | bootstrap resamples cases. A Monte Carlo CI from a, b and their SEs is offered as a **replacement**, labelled as such, not as reproduction |
 | | Binary mediator/outcome | 🔁 synthetic | — | fails 1 |
 | Effect sizes | β, d, η², partial η², ω², r | ✅ exact, only with a declared convention | follows from the same statistics (β = b · SD_x / SD_y) | d pooled / d_av / d_z, Hedges' g, how an interaction is standardized; without a convention, no claim |
-| Longitudinal | Paired t | ✅ exact | M, SD per condition + r between conditions (or M_diff, SD_diff) | r is rarely reported |
+| Longitudinal | Paired t | ✅ exact | M, SD per condition + r between conditions (SD_diff added only when r ≈ 1, `decisions/0009`) | r is rarely reported |
 | | RM ANOVA, uncorrected F | ✅ exact | M, SD per time point + average covariance | verified: average suffices |
 | | RM ANOVA, GG/HF-corrected, or pairwise comparisons | ✅ exact | all pairwise correlations | verified: average changes GG epsilon |
 | | Mixed / growth model with missing time points | 🔒 raw data | (per-person sums and cross-products) | fails 3: with few measurements per person these summaries are nearly the raw data |
@@ -94,7 +94,7 @@ One central S3 object for the share direction, made by `sufficient_stats()`, hol
 - stated reason for not sharing (required)
 - "what is lost" list
 
-The share functions create or use this object. The check functions (`check_*()`) do not: they work from the numbers a paper reports.
+The share functions create or use this object. The check functions (`check_*()`) do not: they work from the numbers a paper reports. The object stores statistics in that same reporting form (n, M, SD, r) whenever it is sufficient, so the check side sets the vocabulary (`decisions/0009`).
 
 ### 5.2 Registry of model handlers
 
@@ -188,8 +188,8 @@ Prior art to cite: statcheck (Nuijten & Epskamp), JATSdecoder `get.stats()` (Bö
 ## 13. Build order
 
 1. Package skeleton: sufficient-statistics object, registry, t-test and lm handlers, round-trip tests.
-2. Remaining v1 handlers (✅ and triage-only) + `appendix()` markdown output.
-3. `check_*()` functions with rounding ranges and variants.
+2. `check_*()` functions with rounding ranges and variants (moved forward, `decisions/0009`).
+3. Remaining v1 handlers (✅ and triage-only), storing what the checks read, + `appendix()` markdown output.
 4. Shiny app (three tabs) + scenario cards.
 5. shinylive deployment via GitHub Actions; README with generated coverage table.
 6. (v2) synthetic route; random-intercept model.
