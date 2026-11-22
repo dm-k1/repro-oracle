@@ -21,7 +21,7 @@ This workspace repo holds what belongs to neither: the project plan and the desi
 its own history, CI and releases, and this repo pins one commit of each.
 
 ```bash
-git clone --recurse-submodules https://github.com/OWNER/repro-oracle.git
+git clone --recurse-submodules https://github.com/dm-k1/repro-oracle.git
 # already cloned without them:
 git submodule update --init
 ```
@@ -50,14 +50,14 @@ git add reprokit && git commit -m "Bump reprokit" && git push
 
 ## First push
 
-`.gitmodules` points at `https://github.com/OWNER/...`. Replace `OWNER`, create the
+`.gitmodules` points at `https://github.com/dm-k1/...`. Replace `dm-k1`, create the
 three GitHub repositories, then push the submodules **before** this repo (otherwise the
 pinned commits don't exist on GitHub yet):
 
 ```bash
-git -C reprokit     remote add origin https://github.com/OWNER/reprokit.git
+git -C reprokit     remote add origin https://github.com/dm-k1/reprokit.git
 git -C reprokit     push -u origin main
-git -C reprokit-app remote add origin https://github.com/OWNER/reprokit-app.git
+git -C reprokit-app remote add origin https://github.com/dm-k1/reprokit-app.git
 git -C reprokit-app push -u origin main
-git remote add origin https://github.com/OWNER/repro-oracle.git && git push -u origin main
+git remote add origin https://github.com/dm-k1/repro-oracle.git && git push -u origin main
 ```
