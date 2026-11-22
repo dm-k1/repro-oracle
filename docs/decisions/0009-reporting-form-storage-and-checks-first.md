@@ -1,6 +1,6 @@
 # 0009. Store statistics in reporting form; build check_*() before the remaining handlers
 
-Date: 2026-11-22 · Status: proposed
+Date: 2026-11-22 · Status: accepted
 
 ## Context
 

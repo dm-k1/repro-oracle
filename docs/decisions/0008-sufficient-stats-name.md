@@ -23,7 +23,7 @@ Date: 2026-11-22 · Status: accepted (changes plan §5, §8, §12, §13)
 - The package has two directions that do not share an object:
   - share: `triage()` → `sufficient_stats()` → `reproduce()` / `appendix()`;
   - check: `check_*()` takes reported numbers only.
-- Build order is unchanged: all handlers and `appendix()` first, then `check_*()`.
+- Build order is unchanged: all handlers and `appendix()` first, then `check_*()`. (Replaced by ADR 0009: `check_*()` now comes before the remaining handlers.)
 
 ## Consequences
 - + The function name says what it returns; the docs need no extra term.
