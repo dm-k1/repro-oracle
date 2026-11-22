@@ -1,7 +1,7 @@
 # Reproducibility oracle — project plan
 
 Status: design decisions up to 16 Nov 2026. Package name: open (working name `reprokit`).
-Changed since: repository layout → see `decisions/0001-two-repositories.md`.
+Changed since: repository layout → see `decisions/0001-two-repositories.md`; verdict rule and coverage table (§3, §4, §12) → see `decisions/0004-sufficiency-rule-for-verdicts.md`.
 
 ## 1. Purpose and framing
 
@@ -30,41 +30,52 @@ The two directions use the same statistics: what the author's appendix reports i
 
 ## 3. Triage: three verdicts
 
-Whether raw data is "needed" depends on what the reader wants to do, not only on the model. The triage separates exact from approximate reproduction:
+Whether raw data is "needed" depends on what the reader wants to do, not only on the model. The triage separates exact from approximate reproduction, using one rule (→ `decisions/0004`). An analysis is ✅ only if all three hold: (1) the summaries mathematically determine the result, (2) a round-trip test passes, (3) the summaries are clearly less identifying than the raw data. If one fails, it moves down:
 
 | Verdict | Meaning |
 |---|---|
-| Summary statistics suffice | exact reproduction; package generates the markdown appendix |
-| Synthetic data possible | approximate reproduction; quality measured by refitting the model on synthetic data |
-| Needs the raw data | for exact reproduction of complex models, diagnostics, reanalysis, fraud detection; always listed under "what is lost" |
+| ✅ Summary statistics suffice | exact reproduction; package generates the markdown appendix |
+| 🔁 Synthetic data possible | approximate reproduction only; quality measured by refitting the model on synthetic data; share the raw data if you can |
+| 🔒 Needs the raw data | summaries are not sufficient and synthetic data does not work, **or** the needed summaries are close to the raw data (no real privacy gain, only less information). Diagnostics, reanalysis and fraud detection always need the raw data and are always listed under "what is lost" |
+
+Every verdict ends with "sharing the raw data remains the standard".
 
 ## 4. Coverage table (statistical decisions)
 
 | Family | Analysis | Verdict | What is needed | Catch |
 |---|---|---|---|---|
-| Group tests | Independent t, one-way and factorial ANOVA | ✅ exact | n, M, SD per group/cell | SS type (I/II/III) must be recorded for unbalanced designs |
+Verdicts follow the three-condition rule in §3 (`decisions/0004`). "Fails" names the condition that moves a row down.
+
+| Family | Analysis | Verdict | What is needed | Catch |
+|---|---|---|---|---|
+| Group tests | Independent t (Student and Welch), one-way and factorial ANOVA | ✅ exact | n, M, SD per group/cell | SS type (I/II/III) must be recorded for unbalanced designs |
 | | One-sample t | ✅ exact | n, M, SD, test value | — |
-| | χ² | ✅ exact | contingency table of counts | the table is close to the raw data: small-cell disclosure risk |
+| | χ² | ✅ exact (borderline) | contingency table of counts | fixed note: "for these variables the table *is* the data"; disclosure check required in the appendix |
+| | Nonparametric: Mann-Whitney, Wilcoxon, Kruskal-Wallis | 🔒 raw data | ranks | fails 1: means and SDs do not determine rank tests; the ranks are nearly the data |
 | Correlation | Pearson r | ✅ exact | n, r | — |
+| | Spearman ρ | 🔒 raw data | ranks | fails 1 (as above) |
 | GLM | lm / regression | ✅ exact | n, means and covariance matrix of all model columns (dummies, interactions) | complete cases on model variables only |
 | | Interaction / moderation | ✅ exact | covariance matrix including the product column x·z | product moments cannot be derived from x and z; with it, any centering is reproducible afterwards |
-| | Logistic / Poisson, categorical predictors | ✅ exact | counts per combination of predictor levels | small-cell risk |
-| | Logistic / Poisson, continuous predictors | ❌ approx. only | higher-order moments or binning | → synthetic data |
+| | Logistic / Poisson, categorical predictors | ✅ exact (borderline) | counts per combination of predictor levels | same note and disclosure check as χ² |
+| | Logistic / Poisson, continuous predictors | 🔁 synthetic | — | fails 1: no finite set of summaries determines the fit |
+| | Robust / cluster-robust SEs | 🔒 raw data | residuals | fails 1: needs per-case residuals |
 | Mediation | a, b, c′, indirect a·b, Sobel | ✅ exact | covariance matrix of X, M, Y + n | — |
-| | Bootstrap CI | ⚠️ approx. | raw data, or Monte Carlo CI from a, b and SEs | bootstrap resamples cases; exact reproduction also needs the seed |
-| | Binary mediator/outcome | ❌ | — | → synthetic data |
-| Effect sizes | β, d, η², partial η², ω², r | ✅ exact | follows from the same statistics (β = b · SD_x / SD_y) | conventions must be declared: d pooled / d_av / d_z, Hedges' g, how an interaction is standardized |
+| | Bootstrap CI | 🔒 not reproducible | raw data + seed | bootstrap resamples cases. A Monte Carlo CI from a, b and their SEs is offered as a **replacement**, labelled as such, not as reproduction |
+| | Binary mediator/outcome | 🔁 synthetic | — | fails 1 |
+| Effect sizes | β, d, η², partial η², ω², r | ✅ exact, only with a declared convention | follows from the same statistics (β = b · SD_x / SD_y) | d pooled / d_av / d_z, Hedges' g, how an interaction is standardized; without a convention, no claim |
 | Longitudinal | Paired t | ✅ exact | M, SD per condition + r between conditions (or M_diff, SD_diff) | r is rarely reported |
 | | RM ANOVA, uncorrected F | ✅ exact | M, SD per time point + average covariance | verified: average suffices |
 | | RM ANOVA, GG/HF-corrected, or pairwise comparisons | ✅ exact | all pairwise correlations | verified: average changes GG epsilon |
-| | Mixed / growth model with missing time points | ⚠️ | per-person sums and cross-products | nearly the raw data for few measurements per person |
-| | GEE, robust SEs | ❌ | residuals from raw data | — |
-| Multilevel | Linear random intercept | ⚠️ exact from per-cluster summaries (likelihood verified) | n_j, sums and cross-products per cluster | safe only with large clusters; own likelihood + validation vs lme4 needed |
-| | Linear random slopes | ⚠️ in principle (not yet tested) | per-cluster cross-products incl. slope variable | same |
-| | Logistic multilevel (GLMM) | ❌ | raw data | → synthetic data |
-| SEM / path models | continuous variables | ✅ exact | covariance matrix, means, n | can be passed to lavaan (sample.cov) |
+| | Mixed / growth model with missing time points | 🔒 raw data | (per-person sums and cross-products) | fails 3: with few measurements per person these summaries are nearly the raw data |
+| | GEE | 🔒 raw data | residuals | fails 1 |
+| Multilevel | Linear random intercept | 🔁 synthetic (v1) | (n_j, sums and cross-products per cluster) | fails 2 in v1: likelihood verified, but not validated against lme4. May move to ✅ in v2, only with large clusters (else fails 3) |
+| | Linear random slopes | 🔒 no claim | — | fails 2: not tested |
+| | Logistic multilevel (GLMM) | 🔁 synthetic | — | fails 1 |
+| SEM / path models | continuous variables, ML, complete cases | ✅ exact | covariance matrix, means, n | can be passed to lavaan (sample.cov) |
+| | FIML, MLR / robust, WLSMV with ordinal indicators | 🔒 raw data | — | fails 1: FIML needs missingness patterns, MLR needs case-level kurtosis, WLSMV needs polychoric weights from raw data |
+| Every model | diagnostics, reanalysis, fraud detection | 🔒 raw data | — | always listed under "what is lost" |
 
-Pattern for the presentation: exact reproduction from summaries works for simple between-group tests and linear models. In longitudinal and multilevel designs, the needed summaries approach the raw data.
+Pattern for the presentation: exact reproduction from summaries works for simple between-group tests and linear models. In longitudinal and multilevel designs, the needed summaries approach the raw data, and then they offer no privacy gain.
 
 ## 5. Architecture
 
@@ -138,7 +149,7 @@ Each analysis type is a handler that defines: how to triage, what to store, how 
 
 - Round-trip tests for every ✅ claim: data → kit → refit equals base R / car / lavaan / lme4 to ~1e-8.
 - Random designs: many simulated datasets per handler (unbalanced, missing values, factors, interactions).
-- Refusal tests: every ❌ case returns the right verdict and message.
+- Refusal tests: every 🔁 and 🔒 case returns the right verdict and message.
 - Known-answer tests for the check direction: consistent and planted-inconsistent cases.
 - Cross-checks with statcheck and scrutiny where they overlap.
 - Standards: rOpenSci statistical software standards, compliance documented with srr; autotest; pkgcheck.
@@ -172,9 +183,9 @@ Prior art to cite: statcheck (Nuijten & Epskamp), JATSdecoder `get.stats()` (Bö
 
 | Version | Contents |
 |---|---|
-| v1 (class) | kit/refit/appendix for: independent + paired t, one-sample t, Pearson, one-way + factorial ANOVA, RM ANOVA, lm with interactions, χ² / categorical logistic, simple mediation (Monte Carlo CI), standardized effects. Checks for t, F, χ², r, CIs. Triage-only (verdict + advice) for multilevel, GLMM, logistic with continuous predictors. |
-| v2 | synthetic route via synthpop with utility report; linear random-intercept model validated against lme4 |
-| Refuse list | GLMMs (summary route), robust/cluster SEs, random slopes until validated |
+| v1 (class) | kit/refit/appendix for: independent + paired t, one-sample t, Pearson, one-way + factorial ANOVA, RM ANOVA, lm with interactions, χ² / categorical logistic, simple mediation (Monte Carlo CI labelled as replacement for the bootstrap CI), standardized effects with declared convention, SEM (ML, complete cases). Checks for t, F, χ², r, CIs. Triage-only (verdict + advice) for multilevel, GLMM, logistic with continuous predictors, mixed models with missing time points, nonparametric tests, SEM with FIML/MLR/WLSMV. |
+| v2 | synthetic route via synthpop with utility report; linear random-intercept model validated against lme4 (✅ only for large clusters) |
+| Refuse list (summary route) | GLMMs, logistic/Poisson with continuous predictors, robust/cluster SEs and GEE, mixed models with missing time points, nonparametric tests, bootstrap CIs (Monte Carlo replacement only), SEM with FIML/MLR/WLSMV, random slopes until validated |
 
 ## 13. Build order
 
