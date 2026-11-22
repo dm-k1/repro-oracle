@@ -7,7 +7,8 @@ The plan (§11) proposed one repository with the app in a subfolder. The package
 usable, testable and citable without Shiny (§5).
 
 ## Decision
-Two repositories, `reprokit` and `reprokit-app`, tied together by this workspace repo.
+Two repositories, `reprokit` and `reprokit-app`, included in this workspace repo as git
+submodules, so one clone gives the plan, the package and the app at matching commits.
 
 ## Consequences
 - + The "app contains no statistics" rule is enforced by the boundary: the app can only use
@@ -16,3 +17,4 @@ Two repositories, `reprokit` and `reprokit-app`, tied together by this workspace
 - − The app must install the package from a remote: GitHub for CI, **r-universe for webR**
   (shinylive can only load packages that have a WebAssembly build; r-universe builds those).
 - − A package change that the app needs = two pull requests, in order.
+- − Submodule pointers must be bumped by hand after each change in a sub-repo.

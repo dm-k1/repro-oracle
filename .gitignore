@@ -1,7 +1,3 @@
-# The two sub-repositories have their own git history.
-# Once they have GitHub remotes, replace these lines with git submodules (see README).
-reprokit/
-reprokit-app/
 .DS_Store
 .Rproj.user/
 .Rhistory

@@ -1,0 +1,6 @@
+[submodule "reprokit"]
+	path = reprokit
+	url = https://github.com/OWNER/reprokit.git
+[submodule "reprokit-app"]
+	path = reprokit-app
+	url = https://github.com/OWNER/reprokit-app.git
