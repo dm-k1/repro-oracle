@@ -17,6 +17,24 @@ Link to the source: Chambers (2019), *The Seven Deadly Sins of Psychology*, ch. 
 - PLOS audit: about a quarter of sampled papers claimed "all data in the paper" while only giving summaries.
 - PRO Initiative: share, or state why not.
 
+The APA Publication Manual (7th ed.) already states the obligation this tool mechanises, and
+already uses its vocabulary (`decisions/0010` quotes the passages in full):
+
+- §3.7: a paper must "include sufficient information to help readers fully understand the analyses
+  conducted", yet "it is impossible to specify what constitutes a 'sufficient set of statistics' in
+  general terms" — the generic list it does give is per-cell n, M and SD (or frequencies).
+- §6.43: the data supplied "should allow readers to confirm the basic reported analyses (e.g., cell
+  means, standard deviations, sample sizes, correlations)".
+- §3.7 also names the deliverable: when a sufficient set is extensive, "the information could be
+  supplied in a supplementary data set or an appendix".
+- §1.14: "Authors must make their data available after publication", and the Ethics Code (Standard
+  8.14) prohibits withholding data from qualified requesters for verification through reanalysis.
+
+So the project's position is not "APA is not enough". It is: APA says a sufficient set must be
+reported and that it cannot be specified in general — this package specifies it per analysis, and
+checks whether a paper's numbers meet it. The sharpest case is the paired t, where APA's own generic
+list (per-cell n, M, SD) does not determine the test statistic.
+
 Risk to design against: the tool must not become a respectable excuse for not sharing. Every output therefore (a) requires a stated reason for not sharing and (b) lists what readers lose.
 
 ## 2. Two directions
