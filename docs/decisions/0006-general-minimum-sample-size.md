@@ -1,6 +1,6 @@
 # 0006. A general minimum sample size for every ✅ verdict
 
-Date: 2026-11-22 · Status: proposed (adds to ADR 0004 condition 3)
+Date: 2026-11-22 · Status: accepted (adds to ADR 0004 condition 3)
 
 ## Context
 ADR 0004 condition 3 is checked per handler (group sizes, cells of 0/1 columns). Some kits
@@ -24,4 +24,4 @@ numbers does not measure what is identifiable.
 - + Tied to the same `threshold` the author already sets, so one knob controls both checks.
 - − For two-group tests it adds nothing (two groups of ≥ threshold already give
   n ≥ 2 × threshold); it bites for regression and single-sample analyses.
-- − The factor 2 is a judgement. Status stays proposed until it is confirmed.
+- − The factor 2 is a judgement call, confirmed 2026-11-22: it is the smallest n at which two groups can each reach the threshold, so the general rule matches what the per-group checks already demand of a two-group design.
