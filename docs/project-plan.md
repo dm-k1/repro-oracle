@@ -23,8 +23,8 @@ Risk to design against: the tool must not become a respectable excuse for not sh
 
 | Direction | User | Question | Output |
 |---|---|---|---|
-| Share | author who cannot share raw data | "What must I report so others can reproduce this?" | verdict, markdown appendix with the needed statistics, disclosure check, "what is lost" |
-| Check | reader / reviewer | "Do this paper's reported numbers fit together?" | consistent / inconsistent with the reported statistics, with ranges and variants tried |
+| Share | author who cannot share raw data | "What must I report so others can reproduce this?" | verdict, markdown appendix: what APA already requires, plus what has to be added beyond it to make the result reproducible (with a reason per number), disclosure check, "what is lost" |
+| Check | reader / reviewer | "Do this paper's reported numbers fit together, and how much of them can be checked at all?" | per reported number: verified / coherent / inconsistent / not checkable, a coverage level, and which missing numbers would raise it — with ranges and variants tried (`decisions/0010`) |
 
 The two directions use the same statistics: what the author's appendix reports is exactly the input the reader's check needs.
 
@@ -50,7 +50,7 @@ Verdicts follow the three-condition rule in §3 (`decisions/0004`). "Fails" name
 | | One-sample t | ✅ exact | n, M, SD, test value | — |
 | | χ² | ✅ exact (borderline) | contingency table of counts | fixed note: "for these variables the table *is* the data"; disclosure check required in the appendix |
 | | Nonparametric: Mann-Whitney, Wilcoxon, Kruskal-Wallis | 🔒 raw data | ranks | fails 1: means and SDs do not determine rank tests; the ranks are nearly the data |
-| Correlation | Pearson r | ✅ exact | n, M and SD of both variables, r | — |
+| Correlation | Pearson r | ✅ exact | n and r (M and SD of both variables are stored too, because the APA descriptives table reports them, but r cannot be rebuilt from them, `decisions/0010`) | — |
 | | Spearman ρ | 🔒 raw data | ranks | fails 1 (as above) |
 | GLM | lm / regression | ✅ exact | n, means and covariance matrix of all model columns (dummies, interactions) | complete cases on model variables only |
 | | Interaction / moderation | ✅ exact | covariance matrix including the product column x·z | product moments cannot be derived from x and z; with it, any centering is reproducible afterwards |
@@ -123,12 +123,29 @@ Each analysis type is a handler that defines: how to triage, what to store, how 
 | `triage()` | share | verdict per route, with reasons |
 | `sufficient_stats()` | share | stores the sufficient statistics of a fitted model or formula + data |
 | `reproduce()` | share | reproduces the results from the sufficient statistics; must equal the original |
-| `appendix()` | share | writes the markdown appendix (statistics, disclosure check, reason, what is lost) |
+| `appendix()` | share | writes the markdown appendix (APA set, what is added beyond APA and why, disclosure check, reason, what is lost) |
+| `reporting_gap()` | share | the README table "what APA gives" vs "what must be added to reproduce", generated from the registry |
 | `synthesize()` | share | (later) synthetic data via synthpop + utility report |
-| `check_*()` | check | consistency checks for t, F, χ², r, CIs, from reported numbers only |
+| `check_reported()` | check | the engine: evaluates every relation whose inputs are reported, returns a status per number, a coverage level and what is missing |
+| `check_*()` | check | thin wrappers for t, F, χ², r, CIs, from reported numbers only |
 
 ## 6. Check direction: rules
 
+**In one line:** each test is a set of reported quantities plus the equations between them; the check
+evaluates every equation whose inputs are present, and says how much of the result that covers
+(`decisions/0010`).
+
+- Each handler declares `apa` (what APA 7 / JARS requires), `reproducible` (what determines every
+  result) and `relations` (the equations), over one shared vocabulary of quantity names.
+- The check is not only about p. Every reported number gets a status: **verified** (recomputed from
+  more basic reported numbers, e.g. t from M, SD and n), **coherent** (fits the other derived
+  numbers, e.g. p from t and df), **inconsistent**, or **not checkable** (no relation reaches it).
+- Coverage level: 0 nothing checkable · 1 internal coherence of statistic, df, p and CI · 2 the
+  statistic recomputed from the descriptives · 3 the reported set contains `reproducible`, so the
+  result is fully reproducible. The check reports which missing numbers would raise the level.
+- Missing inputs are solved for instead of skipped: when the output is reported and one input is
+  not, report the range of that input that fits ("t is consistent only if r between conditions lies
+  in [.41, .58]"). Inconsistent only when no admissible value works.
 - Recompute over every combination of rounding bounds of the reported inputs; the reported statistic must fall inside the resulting range (cf. Nick Brown's `f_range()` logic).
 - The reported statistic itself also gets its own rounding range (not a fixed tolerance).
 - Try variants before flagging: Student vs Welch, with/without continuity correction, one- vs two-tailed. Report which variant fits.
