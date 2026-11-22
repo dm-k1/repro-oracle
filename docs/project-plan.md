@@ -42,8 +42,6 @@ Every verdict ends with "sharing the raw data remains the standard".
 
 ## 4. Coverage table (statistical decisions)
 
-| Family | Analysis | Verdict | What is needed | Catch |
-|---|---|---|---|---|
 Verdicts follow the three-condition rule in §3 (`decisions/0004`). "Fails" names the condition that moves a row down.
 
 | Family | Analysis | Verdict | What is needed | Catch |
@@ -81,13 +79,13 @@ Pattern for the presentation: exact reproduction from summaries works for simple
 
 | Layer | Job | Rule |
 |---|---|---|
-| R package (core) | triage, kits, refits, appendices, checks | no UI; fully tested; usable without Shiny |
+| R package (core) | triage, sufficient statistics, reproduction, appendices, checks | no UI; fully tested; usable without Shiny |
 | Shiny app (front end) | the oracle: forms, buttons, scenario cards | contains no statistics; only calls package functions |
 | GitHub | code, tests, documentation, hosting | every push runs the tests |
 
-### 5.1 The kit object
+### 5.1 The sufficient-statistics object (ADR 0008)
 
-One central S3 object, holding:
+One central S3 object for the share direction, made by `sufficient_stats()`, holding:
 
 - verdict (+ reason)
 - sufficient statistics (means, covariance matrix, counts, per-cluster summaries)
@@ -96,7 +94,7 @@ One central S3 object, holding:
 - stated reason for not sharing (required)
 - "what is lost" list
 
-All functions create, use or check a kit.
+The share functions create or use this object. The check functions (`check_*()`) do not: they work from the numbers a paper reports.
 
 ### 5.2 Registry of model handlers
 
@@ -109,25 +107,25 @@ Each analysis type is a handler that defines: how to triage, what to store, how 
 
 - Fitted model objects where possible (standard practice): lm, glm, aov, later lmer / lavaan objects, which retain their model frame.
 - Formula + data for tests whose result objects do not contain the data (t.test, chisq.test, cor.test).
-- Both routes produce the same kit.
+- Both routes produce the same object.
 
 ### 5.4 Behaviour rules
 
 - `triage()` always returns a verdict, including "summaries insufficient, because…". It never crashes on unsupported models.
 - Functions asked to do the impossible (e.g. refit a GLMM from summaries) stop with an error that explains why and points to alternatives (raw data, synthetic data, federated analysis).
 - Summaries are computed on complete cases of the model variables only; pairwise deletion is never used.
-- Values are stored at full precision in the kit.
+- Values are stored at full precision.
 
 ### 5.5 Planned functions (names provisional)
 
 | Function | Direction | Does |
 |---|---|---|
 | `triage()` | share | verdict per route, with reasons |
-| `kit()` | share | builds the kit from a fitted model or formula + data |
-| `reproduce()` | share | reproduces the results from a kit; must equal the original |
+| `sufficient_stats()` | share | stores the sufficient statistics of a fitted model or formula + data |
+| `reproduce()` | share | reproduces the results from the sufficient statistics; must equal the original |
 | `appendix()` | share | writes the markdown appendix (statistics, disclosure check, reason, what is lost) |
 | `synthesize()` | share | (later) synthetic data via synthpop + utility report |
-| `check_*()` | check | consistency checks for t, F, χ², r, CIs |
+| `check_*()` | check | consistency checks for t, F, χ², r, CIs, from reported numbers only |
 
 ## 6. Check direction: rules
 
@@ -140,14 +138,14 @@ Each analysis type is a handler that defines: how to triage, what to store, how 
 
 ## 7. Disclosure check
 
-- Summary statistics are not automatically anonymous: small cells, min/max values, rare combinations and differencing (two kits differing by one case) can identify people.
+- Summary statistics are not automatically anonymous: small cells, min/max values, rare combinations and differencing (two releases differing by one case) can identify people.
 - Flag cells / groups / clusters below a threshold (default n < 5, configurable).
 - Describe the check as risk reduction, never as a guarantee of anonymity or legal compliance.
 - Applies to synthetic data too (rare combinations and outliers can be reproduced closely). Synthetic files are clearly labelled as fake.
 
 ## 8. Validation
 
-- Round-trip tests for every ✅ claim: data → kit → reproduce equals base R / car / lavaan / lme4 to a scaled difference < 1e-8 (ADR 0005).
+- Round-trip tests for every ✅ claim: data → sufficient_stats → reproduce equals base R / car / lavaan / lme4 to a scaled difference < 1e-8 (ADR 0005).
 - Random designs: many simulated datasets per handler (unbalanced, missing values, factors, interactions).
 - Refusal tests: every 🔁 and 🔒 case returns the right verdict and message.
 - Known-answer tests for the check direction: consistent and planted-inconsistent cases.
@@ -155,7 +153,7 @@ Each analysis type is a handler that defines: how to triage, what to store, how 
 - Standards: rOpenSci statistical software standards, compliance documented with srr; autotest; pkgcheck.
 - Validation vignette showing PASS tables (as in the verification scripts made so far).
 
-Verified so far (scripts in the design conversation): independent and paired t, Pearson, one-way ANOVA, lm (slopes, intercept, SEs, R²), χ² and categorical logistic regression from counts, random-intercept likelihood from per-cluster summaries, RM ANOVA F from full vs average covariance and GG epsilon, interaction (incl. centering from the same kit), mediation a·b, standardized betas, t-test check prototype with rounding ranges.
+Verified so far (scripts in the design conversation): independent and paired t, Pearson, one-way ANOVA, lm (slopes, intercept, SEs, R²), χ² and categorical logistic regression from counts, random-intercept likelihood from per-cluster summaries, RM ANOVA F from full vs average covariance and GG epsilon, interaction (incl. centering from the same summaries), mediation a·b, standardized betas, t-test check prototype with rounding ranges.
 
 ## 9. Shiny app
 
@@ -183,14 +181,14 @@ Prior art to cite: statcheck (Nuijten & Epskamp), JATSdecoder `get.stats()` (Bö
 
 | Version | Contents |
 |---|---|
-| v1 (class) | kit/reproduce/appendix for: independent + paired t, one-sample t, Pearson, one-way + factorial ANOVA, RM ANOVA, lm with interactions, χ² / categorical logistic, simple mediation (Monte Carlo CI labelled as replacement for the bootstrap CI), standardized effects with declared convention, SEM (ML, complete cases). Checks for t, F, χ², r, CIs. Triage-only (verdict + advice) for multilevel, GLMM, logistic with continuous predictors, mixed models with missing time points, nonparametric tests, SEM with FIML/MLR/WLSMV. |
+| v1 (class) | sufficient_stats/reproduce/appendix for: independent + paired t, one-sample t, Pearson, one-way + factorial ANOVA, RM ANOVA, lm with interactions, χ² / categorical logistic, simple mediation (Monte Carlo CI labelled as replacement for the bootstrap CI), standardized effects with declared convention, SEM (ML, complete cases). Checks for t, F, χ², r, CIs. Triage-only (verdict + advice) for multilevel, GLMM, logistic with continuous predictors, mixed models with missing time points, nonparametric tests, SEM with FIML/MLR/WLSMV. |
 | v2 | synthetic route via synthpop with utility report; linear random-intercept model validated against lme4 (✅ only for large clusters) |
 | Refuse list (summary route) | GLMMs, logistic/Poisson with continuous predictors, robust/cluster SEs and GEE, mixed models with missing time points, nonparametric tests, bootstrap CIs (Monte Carlo replacement only), SEM with FIML/MLR/WLSMV, random slopes until validated |
 
 ## 13. Build order
 
-1. Package skeleton: kit object, registry, t-test and lm handlers, round-trip tests.
-2. Remaining v1 handlers + `appendix()` markdown output.
+1. Package skeleton: sufficient-statistics object, registry, t-test and lm handlers, round-trip tests.
+2. Remaining v1 handlers (✅ and triage-only) + `appendix()` markdown output.
 3. `check_*()` functions with rounding ranges and variants.
 4. Shiny app (three tabs) + scenario cards.
 5. shinylive deployment via GitHub Actions; README with generated coverage table.
