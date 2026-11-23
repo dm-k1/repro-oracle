@@ -1,6 +1,6 @@
 # 0011. One variant that cannot be evaluated makes the whole relation not evaluable
 
-Date: 2026-11-23 · Status: proposed
+Date: 2026-11-23 · Status: accepted
 
 ## Context
 

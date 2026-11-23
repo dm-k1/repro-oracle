@@ -1,6 +1,6 @@
 # 0010. Checks report coverage; the appendix reports the gap beyond APA
 
-Date: 2026-11-23 · Status: proposed
+Date: 2026-11-23 · Status: accepted
 
 ## Context
 

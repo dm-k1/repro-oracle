@@ -1,6 +1,6 @@
 # 0013. Coverage is APA versus sufficient; the v1 scope
 
-Date: 2026-11-23 · Status: proposed
+Date: 2026-11-23 · Status: accepted
 
 ## Context
 

@@ -1,6 +1,6 @@
 # 0012. A reported df stands in for n where it determines n exactly
 
-Date: 2026-11-23 · Status: proposed
+Date: 2026-11-23 · Status: accepted
 
 ## Context
 
