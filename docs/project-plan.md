@@ -1,13 +1,15 @@
 # Reproducibility oracle — project plan
 
 Status: design decisions up to 16 Nov 2026. Package name: open (working name `reprokit`).
-Changed since: repository layout → see `decisions/0001-two-repositories.md`; verdict rule and coverage table (§3, §4, §12) → see `decisions/0004-sufficiency-rule-for-verdicts.md`.
+Changed since: repository layout → see `decisions/0001-two-repositories.md`; verdict rule and coverage table (§3, §4, §12) → see `decisions/0004-sufficiency-rule-for-verdicts.md`; framing, checks and appendix (§1, §2, §4, §5.5, §6) → see `decisions/0010-coverage-checks-and-the-apa-gap.md`, which grounds the APA baseline in the Publication Manual (7th ed.) §3.7, §6.43, §6.44, §1.14 and JARS Table 3.1.
 
 ## 1. Purpose and framing
 
 An in-class assignment on data sharing, built around an "oracle": a Shiny app with a solid R package behind it. The app helps researchers make results as reproducible as possible when raw data cannot be shared, and helps readers check whether reported results are consistent with each other.
 
-Core message: sharing raw data remains the standard. When sharing is genuinely impossible, here is the minimum you owe your readers, and here is exactly what they lose. The tool's limits are part of the argument: summary statistics only suffice for simple designs, and the more realistic the design, the more you need the raw data.
+Core message: **APA already requires you to report a sufficient set of statistics, and says that what counts as sufficient cannot be specified in general terms. This tool specifies it per analysis — and checks whether a paper's numbers meet it.** Sharing the raw data remains the standard (APA §1.14 requires it); when sharing is genuinely impossible, a sufficient set is the minimum you still owe your readers, and the tool names exactly what they lose. The tool's limits are part of the argument: a sufficient set only stays small for simple designs, and the more realistic the design, the closer it comes to the raw data.
+
+Framing rule that follows (`decisions/0010`): the tool never positions itself against APA or beyond it. It implements an APA obligation that APA deliberately left open. Where APA is silent (the paired-t correlation, Welch, sphericity, the d convention), outputs say "APA does not require this" and, where the project demands more, say that this is the project's own rule — never "contrary to APA".
 
 Link to the source: Chambers (2019), *The Seven Deadly Sins of Psychology*, ch. 4 "The Sin of Data Hoarding". Key points used:
 
@@ -56,7 +58,7 @@ Whether raw data is "needed" depends on what the reader wants to do, not only on
 | 🔁 Synthetic data possible | approximate reproduction only; quality measured by refitting the model on synthetic data; share the raw data if you can |
 | 🔒 Needs the raw data | summaries are not sufficient and synthetic data does not work, **or** the needed summaries are close to the raw data (no real privacy gain, only less information). Diagnostics, reanalysis and fraud detection always need the raw data and are always listed under "what is lost" |
 
-Every verdict ends with "sharing the raw data remains the standard".
+Every verdict ends with "sharing the raw data remains the standard", citing APA §1.14 and Ethics Code Standard 8.14 — it is APA policy, not this project's opinion.
 
 ## 4. Coverage table (statistical decisions)
 

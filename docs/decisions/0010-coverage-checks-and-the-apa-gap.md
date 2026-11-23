@@ -74,7 +74,8 @@ structure that links the numbers to each other.
    ("t is consistent only if r between conditions lies in [.41, .58]"). It is inconsistent only when
    no admissible value works. All intervals come from the reported decimals (rounding ranges, plan
    §6), not from a fixed tolerance.
-4. **The appendix is APA plus the gap.** `appendix()` prints the APA set, then
+4. **The appendix is APA plus the gap.** It opens by citing §3.7 and §6.43, so an author can see the
+   requirement it discharges rather than take the package's word for it. `appendix()` prints the APA set, then
    `reproducible` minus `apa` with a one-line reason per added number. The same two fields generate a
    **reporting-gap table** for the README, next to the coverage table.
 5. **Pearson keeps M and SD, as `apa` only.** r is not recomputable from means and SDs, so M and SD
