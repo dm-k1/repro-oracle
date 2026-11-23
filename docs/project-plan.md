@@ -1,7 +1,7 @@
 # Reproducibility oracle — project plan
 
 Status: design decisions up to 16 Nov 2026. Package name: open (working name `reprokit`).
-Changed since: repository layout → see `decisions/0001-two-repositories.md`; verdict rule and coverage table (§3, §4, §12) → see `decisions/0004-sufficiency-rule-for-verdicts.md`; framing, checks and appendix (§1, §2, §4, §5.5, §6) → see `decisions/0010-coverage-checks-and-the-apa-gap.md`, which grounds the APA baseline in the Publication Manual (7th ed.) §3.7, §6.43, §6.44, §1.14 and JARS Table 3.1.
+Changed since: repository layout → see `decisions/0001-two-repositories.md`; verdict rule and coverage table (§3, §4, §12) → see `decisions/0004-sufficiency-rule-for-verdicts.md`; framing, checks and appendix (§1, §2, §4, §5.5, §6) → see `decisions/0010-coverage-checks-and-the-apa-gap.md`, which grounds the APA baseline in the Publication Manual (7th ed.) §3.7, §6.43, §6.44, §1.14 and JARS Table 3.1; coverage model, the one coverage table, the appendix blocks and the v1 scope (§2, §4, §5.5, §6, §12, §13) → see `decisions/0013-coverage-is-apa-versus-sufficient-and-v1-scope.md`, which supersedes ADR 0010 points 1 and 5.
 
 ## 1. Purpose and framing
 
@@ -9,7 +9,7 @@ An in-class assignment on data sharing, built around an "oracle": a Shiny app wi
 
 Core message: **APA already requires you to report a sufficient set of statistics, and says that what counts as sufficient cannot be specified in general terms. This tool specifies it per analysis — and checks whether a paper's numbers meet it.** Sharing the raw data remains the standard (APA §1.14 requires it); when sharing is genuinely impossible, a sufficient set is the minimum you still owe your readers, and the tool names exactly what they lose. The tool's limits are part of the argument: a sufficient set only stays small for simple designs, and the more realistic the design, the closer it comes to the raw data.
 
-Framing rule that follows (`decisions/0010`): the tool never positions itself against APA or beyond it. It implements an APA obligation that APA deliberately left open. Where APA is silent (the paired-t correlation, Welch, sphericity, the d convention), outputs say "APA does not require this" and, where the project demands more, say that this is the project's own rule — never "contrary to APA".
+Framing rule that follows (`decisions/0010`): the tool never positions itself against APA or beyond it. It implements an APA obligation that APA deliberately left open. Where APA is silent (the paired-t correlation, Welch, sphericity, the d convention), outputs say "APA does not require this" and, where the project demands more, say that this is the project's own rule — never "contrary to APA". Welch versus Student and the d convention are *choices to declare*, not missing numbers (`decisions/0013`).
 
 Link to the source: Chambers (2019), *The Seven Deadly Sins of Psychology*, ch. 4 "The Sin of Data Hoarding". Key points used:
 
@@ -43,7 +43,7 @@ Risk to design against: the tool must not become a respectable excuse for not sh
 
 | Direction | User | Question | Output |
 |---|---|---|---|
-| Share | author who cannot share raw data | "What must I report so others can reproduce this?" | verdict, markdown appendix: what APA already requires, plus what has to be added beyond it to make the result reproducible (with a reason per number), disclosure check, "what is lost" |
+| Share | author who cannot share raw data | "What must I report so others can reproduce this?" | verdict, markdown appendix in four blocks: (a) the APA set; (b) the missing numbers (sufficient − APA) with their values and a reason each; (c) the choices to declare, with the author's answer; (d) the APA numbers that stay not checkable, with reasons — then disclosure check, reason for not sharing, "what is lost" (`decisions/0013`) |
 | Check | reader / reviewer | "Do this paper's reported numbers fit together, and how much of them can be checked at all?" | per reported number: verified / coherent / inconsistent / not checkable, a coverage level, and which missing numbers would raise it — with ranges and variants tried (`decisions/0010`) |
 
 The two directions use the same statistics: what the author's appendix reports is exactly the input the reader's check needs.
@@ -60,40 +60,49 @@ Whether raw data is "needed" depends on what the reader wants to do, not only on
 
 Every verdict ends with "sharing the raw data remains the standard", citing APA §1.14 and Ethics Code Standard 8.14 — it is APA policy, not this project's opinion.
 
-## 4. Coverage table (statistical decisions)
+## 4. Coverage table (v1 specification)
 
-Verdicts follow the three-condition rule in §3 (`decisions/0004`). "Fails" names the condition that moves a row down.
+**In one line:** per test, *missing = sufficient − APA*; per APA number, *checkable from the sufficient set or not, and why*; per test, *the choices to declare* (`decisions/0013`).
 
-| Family | Analysis | Verdict | What is needed | Catch |
+This table is the specification `coverage_table()` must generate from the registry. Once the function covers every v1 test, this section points to its output instead of carrying a hand-made copy. Missing and checkable are computed (set difference; reachability through `relations`); only the reasons and the choices are declared. Rows for handlers that do not exist yet state what their relations must reach; the regression rows are pending verification of JARS Table 3.1 at source (§8).
+
+| Test | APA reports | Sufficient | Missing (reason) | Checkable | Not checkable (reason) | Choices to declare |
+|---|---|---|---|---|---|---|
+| χ² independence | χ², df, p, N, the contingency table, V | the contingency table | — | χ², df, p, V (to build) | — | continuity correction for 2×2 |
+| χ² goodness of fit | χ², df, p, N, observed counts | observed counts, H0 proportions | H0 proportions, unless equal ("the expected counts depend on them") | χ², df, p (to build) | — | — |
+| One-sample t | n, M, SD, t, df, p, CI, d | n, M, SD, test value | — | df, t, p, CI, d | — | tails, level, d convention |
+| Independent t | n, M, SD per group, t, df, p, CI, d | n, M, SD per group | — | df, t, p, CI, d | — | Student/Welch, tails, level, d convention |
+| Paired t | n, M, SD per condition, t, df, p, CI, d | n, M, SD per condition, r between conditions | r ("t depends on the within-person correlation; per-condition M and SD do not determine it") | df, t, p, CI, d | — | tails, level, d_z / d_av |
+| Pearson r | n, M, SD of both variables, r, df, p, CI | n, r | — | df, CI, p (via t from r) | M, SD ("r does not depend on them") | tails, level |
+| One-way ANOVA | n, M, SD per group, F, df, p, η² | n, M, SD per group | — | df, F, p, η² (to build) | — | effect-size convention |
+| Factorial between | n, M, SD per cell, F, df, p per effect, partial η² | n, M, SD per cell | — | df, F, p, partial η² per effect (to build) | — | SS type for unbalanced designs, effect-size convention |
+| Simple regression | n, M, SD of X and Y, b, SE, t, p, R² (pending JARS) | n, M, SD of X and Y, r | — (r = b · SD_x / SD_y) | to build | — | — |
+| Multiple regression | n, M, SD per variable, b, SE, t, p, R², F (pending JARS) | n, M, SD, correlation matrix of all model columns | the correlations ("coefficients depend on how the predictors overlap") | to build | — | factor coding |
+| Moderation | as multiple regression | + moments of the product X·Z | the X·Z moments ("cannot be derived from X and Z summaries") | to build | — | centering, coding |
+| Simple mediation | a, b, c, c′, a·b, its CI, n (pending JARS) | n, M, SD and correlations of X, M, Y | the correlations | a, b, c, c′, a·b, Sobel (to build) | bootstrap CI ("bootstrap resamples cases; summaries cannot") | CI method |
+
+Triage-only in v1 (a verdict and advice, no appendix or check). Verdicts follow the three-condition rule in §3 (`decisions/0004`); "fails" names the condition that moves a row down.
+
+| Family | Analysis | Verdict | What would be needed | Note |
 |---|---|---|---|---|
-| Group tests | Independent t (Student and Welch), one-way and factorial ANOVA | ✅ exact | n, M, SD per group/cell | SS type (I/II/III) must be recorded for unbalanced designs |
-| | One-sample t | ✅ exact | n, M, SD, test value | — |
-| | χ² | ✅ exact (borderline) | contingency table of counts | fixed note: "for these variables the table *is* the data"; disclosure check required in the appendix |
-| | Nonparametric: Mann-Whitney, Wilcoxon, Kruskal-Wallis | 🔒 raw data | ranks | fails 1: means and SDs do not determine rank tests; the ranks are nearly the data |
-| Correlation | Pearson r | ✅ exact | n and r (M and SD of both variables are stored too, because the APA descriptives table reports them, but r cannot be rebuilt from them, `decisions/0010`) | — |
-| | Spearman ρ | 🔒 raw data | ranks | fails 1 (as above) |
-| GLM | lm / regression | ✅ exact | n, means and covariance matrix of all model columns (dummies, interactions) | complete cases on model variables only |
-| | Interaction / moderation | ✅ exact | covariance matrix including the product column x·z | product moments cannot be derived from x and z; with it, any centering is reproducible afterwards |
-| | Logistic / Poisson, categorical predictors | ✅ exact (borderline) | counts per combination of predictor levels | same note and disclosure check as χ² |
+| Rank tests | Mann-Whitney, Wilcoxon, Kruskal-Wallis, Spearman ρ | 🔒 raw data | ranks | fails 1: means and SDs do not determine rank tests; the ranks are nearly the data |
+| GLM | Logistic / Poisson, categorical predictors | ✅ exact (borderline) | counts per combination of predictor levels | outside v1; same disclosure note as χ² |
 | | Logistic / Poisson, continuous predictors | 🔁 synthetic | — | fails 1: no finite set of summaries determines the fit |
-| | Robust / cluster-robust SEs | 🔒 raw data | residuals | fails 1: needs per-case residuals |
-| Mediation | a, b, c′, indirect a·b, Sobel | ✅ exact | covariance matrix of X, M, Y + n | — |
-| | Bootstrap CI | 🔒 not reproducible | raw data + seed | bootstrap resamples cases. A Monte Carlo CI from a, b and their SEs is offered as a **replacement**, labelled as such, not as reproduction |
-| | Binary mediator/outcome | 🔁 synthetic | — | fails 1 |
-| Effect sizes | β, d, η², partial η², ω², r | ✅ exact, only with a declared convention | follows from the same statistics (β = b · SD_x / SD_y) | d pooled / d_av / d_z, Hedges' g, how an interaction is standardized; without a convention, no claim |
-| Longitudinal | Paired t | ✅ exact | M, SD per condition + r between conditions (SD_diff added only when r ≈ 1, `decisions/0009`) | r is rarely reported |
-| | RM ANOVA, uncorrected F | ✅ exact | M, SD per time point + average covariance | verified: average suffices |
-| | RM ANOVA, GG/HF-corrected, or pairwise comparisons | ✅ exact | all pairwise correlations | verified: average changes GG epsilon |
-| | Mixed / growth model with missing time points | 🔒 raw data | (per-person sums and cross-products) | fails 3: with few measurements per person these summaries are nearly the raw data |
+| | Robust / cluster-robust SEs | 🔒 raw data | residuals | fails 1 |
+| Mediation | binary mediator or outcome | 🔁 synthetic | — | fails 1 |
+| Effect sizes | standalone β, d, η², ω², g | ✅ only with a declared convention | the statistics they follow from | without a convention, no claim |
+| Longitudinal | RM ANOVA, uncorrected F | ✅ exact | M, SD per time point + average covariance | verified: average suffices; outside v1 |
+| | RM ANOVA, GG/HF-corrected, or pairwise comparisons | ✅ exact | all pairwise correlations | verified: average changes GG epsilon; outside v1 |
+| | Mixed / growth model with missing time points | 🔒 raw data | (per-person sums and cross-products) | fails 3: nearly the raw data |
 | | GEE | 🔒 raw data | residuals | fails 1 |
-| Multilevel | Linear random intercept | 🔁 synthetic (v1) | (n_j, sums and cross-products per cluster) | fails 2 in v1: likelihood verified, but not validated against lme4. May move to ✅ in v2, only with large clusters (else fails 3) |
+| Multilevel | Linear random intercept | 🔁 synthetic | (n_j, sums and cross-products per cluster) | fails 2: not validated against lme4; v2 |
 | | Linear random slopes | 🔒 no claim | — | fails 2: not tested |
 | | Logistic multilevel (GLMM) | 🔁 synthetic | — | fails 1 |
-| SEM / path models | continuous variables, ML, complete cases | ✅ exact | covariance matrix, means, n | can be passed to lavaan (sample.cov) |
-| | FIML, MLR / robust, WLSMV with ordinal indicators | 🔒 raw data | — | fails 1: FIML needs missingness patterns, MLR needs case-level kurtosis, WLSMV needs polychoric weights from raw data |
+| SEM | continuous, ML, complete cases | ✅ exact | covariance matrix, means, n | outside v1 |
+| | FIML, MLR / robust, WLSMV | 🔒 raw data | — | fails 1 |
 | Every model | diagnostics, reanalysis, fraud detection | 🔒 raw data | — | always listed under "what is lost" |
 
-Pattern for the presentation: exact reproduction from summaries works for simple between-group tests and linear models. In longitudinal and multilevel designs, the needed summaries approach the raw data, and then they offer no privacy gain.
+Pattern for the presentation: for the simple between-group tests APA's generic list already suffices (missing is empty); it stops sufficing at the first within-subject or multivariable design (paired t, regression, moderation, mediation). In longitudinal and multilevel designs the needed summaries approach the raw data, and then they offer no privacy gain.
 
 ## 5. Architecture
 
@@ -121,7 +130,7 @@ The share functions create or use this object. The check functions (`check_*()`)
 Each analysis type is a handler that defines: how to triage, what to store, how to reproduce, what is lost.
 
 - Adding a model = adding a handler.
-- The coverage table in the README/guideline is generated from the registry, so documentation and package cannot contradict each other.
+- The coverage table in the README/guideline is `coverage_table()`, generated from the registry, so documentation and package cannot contradict each other.
 
 ### 5.3 Input interface (decided: both)
 
@@ -143,8 +152,8 @@ Each analysis type is a handler that defines: how to triage, what to store, how 
 | `triage()` | share | verdict per route, with reasons |
 | `sufficient_stats()` | share | stores the sufficient statistics of a fitted model or formula + data |
 | `reproduce()` | share | reproduces the results from the sufficient statistics; must equal the original |
-| `appendix()` | share | writes the markdown appendix (APA set, what is added beyond APA and why, disclosure check, reason, what is lost) |
-| `reporting_gap()` | share | the README table "what APA gives" vs "what must be added to reproduce", generated from the registry |
+| `appendix()` | share | writes the markdown appendix: (a) APA set, (b) missing numbers with values and reasons, (c) choices with the author's answers, (d) APA numbers not checkable with reasons; then disclosure check, reason, what is lost |
+| `coverage_table()` | share | the one coverage table (§4), generated from the registry (`decisions/0013`) |
 | `synthesize()` | share | (later) synthetic data via synthpop + utility report |
 | `check_reported()` | check | the engine: evaluates every relation whose inputs are reported, returns a status per number, a coverage level and what is missing |
 | `check_*()` | check | thin wrappers for t, F, χ², r, CIs, from reported numbers only |
@@ -155,13 +164,15 @@ Each analysis type is a handler that defines: how to triage, what to store, how 
 evaluates every equation whose inputs are present, and says how much of the result that covers
 (`decisions/0010`).
 
-- Each handler declares `apa` (what APA 7 / JARS requires), `reproducible` (what determines every
-  result) and `relations` (the equations), over one shared vocabulary of quantity names.
+- Each handler declares `apa` (what APA 7 / JARS requires), `sufficient` (what determines every
+  result; renamed from `reproducible`, `decisions/0013`), `relations` (the equations),
+  `not_checkable` (a reason per APA number no relation reaches) and `choices` (declarations that are
+  not numbers), over one shared vocabulary of quantity names.
 - The check is not only about p. Every reported number gets a status: **verified** (recomputed from
   more basic reported numbers, e.g. t from M, SD and n), **coherent** (fits the other derived
   numbers, e.g. p from t and df), **inconsistent**, or **not checkable** (no relation reaches it).
 - Coverage level: 0 nothing checkable · 1 internal coherence of statistic, df, p and CI · 2 the
-  statistic recomputed from the descriptives · 3 the reported set contains `reproducible`, so the
+  statistic recomputed from the descriptives · 3 the reported set contains `sufficient`, so the
   result is fully reproducible. The check reports which missing numbers would raise the level.
 - Missing inputs are solved for instead of skipped: when the output is reported and one input is
   not, report the range of that input that fits ("t is consistent only if r between conditions lies
@@ -225,18 +236,21 @@ Prior art to cite: statcheck (Nuijten & Epskamp), JATSdecoder `get.stats()` (Bö
 
 | Version | Contents |
 |---|---|
-| v1 (class) | sufficient_stats/reproduce/appendix for: independent + paired t, one-sample t, Pearson, one-way + factorial ANOVA, RM ANOVA, lm with interactions, χ² / categorical logistic, simple mediation (Monte Carlo CI labelled as replacement for the bootstrap CI), standardized effects with declared convention, SEM (ML, complete cases). Checks for t, F, χ², r, CIs. Triage-only (verdict + advice) for multilevel, GLMM, logistic with continuous predictors, mixed models with missing time points, nonparametric tests, SEM with FIML/MLR/WLSMV. |
-| v2 | synthetic route via synthpop with utility report; linear random-intercept model validated against lme4 (✅ only for large clusters) |
+| v1 (class) | share, check and appendix, each complete, for: χ² independence and goodness of fit; one-sample, independent (Student and Welch) and paired t; Pearson; one-way and factorial between ANOVA; simple, multiple, moderation and simple-mediation regression (`decisions/0013`). Triage-only (verdict + advice) for everything else: RM ANOVA, logistic/Poisson, SEM, rank tests and Spearman, standalone effect sizes, multilevel and mixed models, GEE. |
+| v2 | synthetic route via synthpop with utility report; linear random-intercept model validated against lme4 (✅ only for large clusters); candidates moved out of v1: RM ANOVA, categorical logistic, SEM (ML), Monte Carlo CI as labelled replacement for the bootstrap CI |
 | Refuse list (summary route) | GLMMs, logistic/Poisson with continuous predictors, robust/cluster SEs and GEE, mixed models with missing time points, nonparametric tests, bootstrap CIs (Monte Carlo replacement only), SEM with FIML/MLR/WLSMV, random slopes until validated |
 
 ## 13. Build order
 
-1. Package skeleton: sufficient-statistics object, registry, t-test and lm handlers, round-trip tests.
-2. `check_*()` functions with rounding ranges and variants (moved forward, `decisions/0009`).
-3. Remaining v1 handlers (✅ and triage-only), storing what the checks read, + `appendix()` markdown output.
-4. Shiny app (three tabs) + scenario cards.
-5. shinylive deployment via GitHub Actions; README with generated coverage table.
-6. (v2) synthetic route; random-intercept model.
+1. ✅ Package skeleton: sufficient-statistics object, registry, t-test and Pearson handlers, round-trip tests.
+2. ✅ Check engine with rounding ranges and variants (`decisions/0009`–`0012`).
+3. `coverage_table()` rewrite on the existing handlers: rename `reproducible` → `sufficient`, add `not_checkable` and `choices`, the computed missing/checkable columns and the package test (`decisions/0013`). Stop for review.
+4. `appendix()` with the four blocks, snapshot tests.
+5. χ² (independence, goodness of fit), one-way and factorial ANOVA handlers, each with relations and validation.
+6. Regression family (simple, multiple, moderation, mediation), after verifying JARS Table 3.1 at source.
+7. Release v1: README with the generated table, vignette, app share module, NEWS, tag.
+8. Shiny app tabs + scenario cards; shinylive deployment via GitHub Actions.
+9. (v2) synthetic route; random-intercept model.
 
 ## 14. In-class assignment (draft, ~40 min)
 
