@@ -166,6 +166,10 @@ evaluates every equation whose inputs are present, and says how much of the resu
 - Missing inputs are solved for instead of skipped: when the output is reported and one input is
   not, report the range of that input that fits ("t is consistent only if r between conditions lies
   in [.41, .58]"). Inconsistent only when no admissible value works.
+- A count that a reported df determines exactly is derived from it when it is not reported: n = df + 2
+  for a correlation, n = df + 1 for a paired or one-sample t, so the APA form r(28) = .41, p = .024 is
+  checkable. The derived n feeds the other relations and counts for the level; df is never checked
+  against it (`decisions/0012`).
 - Recompute over every combination of rounding bounds of the reported inputs; the reported statistic must fall inside the resulting range (cf. Nick Brown's `f_range()` logic).
 - The reported statistic itself also gets its own rounding range (not a fixed tolerance).
 - Try variants before flagging: Student vs Welch, with/without continuity correction, one- vs two-tailed. Report which variant fits.
