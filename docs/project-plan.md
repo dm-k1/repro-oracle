@@ -156,7 +156,7 @@ Each analysis type is a handler that defines: how to triage, what to store, how 
 | `coverage_table()` | share | the one coverage table (§4), generated from the registry (`decisions/0013`) |
 | `synthesize()` | share | (later) synthetic data via synthpop + utility report |
 | `check_reported()` | check | the engine: evaluates every relation whose inputs are reported, returns a status per number, a coverage level and what is missing |
-| `check_*()` | check | thin wrappers for t, F, χ², r, CIs, from reported numbers only |
+| `check_*()` | check | thin wrappers around `check_reported()`, from reported numbers only: `check_t()` and `check_r()` exist; `check_F()` and a χ² wrapper (name open) come with their handlers. A reported CI is checked inside its test's wrapper, not by a wrapper of its own |
 
 ## 6. Check direction: rules
 
