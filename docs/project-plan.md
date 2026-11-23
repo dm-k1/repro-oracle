@@ -185,8 +185,9 @@ evaluates every equation whose inputs are present, and says how much of the resu
 - Round-trip tests for every ✅ claim: data → sufficient_stats → reproduce equals base R / car / lavaan / lme4 to a scaled difference < 1e-8 (ADR 0005).
 - Random designs: many simulated datasets per handler (unbalanced, missing values, factors, interactions).
 - Refusal tests: every 🔁 and 🔒 case returns the right verdict and message.
-- Known-answer tests for the check direction: consistent and planted-inconsistent cases.
-- Cross-checks with statcheck and scrutiny where they overlap.
+- Known-answer tests for the check direction: consistent and planted-inconsistent cases. One is not planted: APA Table 7.8 (`decisions/0010`), which must be reported inconsistent on the n/df relation while every p relation holds.
+- False-positive rate is the headline number, not the test count: over hundreds of random designs, real `t.test()`/`cor.test()` output rounded as a paper would print it must never be flagged inconsistent. Review of the first check engine found 69 false positives in 3600 Pearson checks from one unclamped rounding box, which no unit test had caught.
+- Cross-checks with statcheck and scrutiny where they overlap. statcheck has no entry point for already-parsed numbers: the only route is `statcheck(texts, stat = ...)` on APA-formatted strings, so the cross-check synthesises `"t(29) = 2.85, p = .008"` and compares `computed_p`, `error` and `decision_error`. It brackets only the statistic (±.5/10^decimals), then rounds the resulting p bounds to the reported decimals, and ignores df precision — so agreement is expected on `t → p` and divergence wherever a second input is bracketed. statcheck stays in Suggests (its imports include ggplot2, DT, pdftools, rmarkdown and tcltk) and is called only from the validation script, guarded by `requireNamespace()`.
 - Standards: rOpenSci statistical software standards, compliance documented with srr; autotest; pkgcheck.
 - Validation vignette showing PASS tables (as in the verification scripts made so far).
 
@@ -198,7 +199,7 @@ Three tabs:
 
 - "I can't share my data" — upload data or pick a demo dataset, choose an analysis, give a reason → verdict, downloadable markdown appendix, "what is lost".
 - "Does this paper add up?" — enter reported numbers → consistency verdict with ranges and variants.
-- "Class scenarios" — preset fictional study cards, some with planted inconsistencies or weak data-sharing excuses.
+- "Class scenarios" — preset fictional study cards, some with planted inconsistencies or weak data-sharing excuses. The opening card is not fictional: APA's own sample t-test table (Manual 7th ed., Table 7.8) reports `t(40)` with n = 24 and n = 16, where no test gives df = 40. Its p values round correctly at both df = 38 and df = 40, so a p-value checker passes it; only checking df against n catches it (`decisions/0010`). It makes the point before any invented example does, and it shows why the output never says which number is wrong.
 
 ## 10. Hosting (decided: shinylive)
 

@@ -167,7 +167,9 @@ consulted is reflowed and carries no printed page numbers, so sections are cited
   remains the standard: it is APA policy, not this project's opinion.
 
 What the manual does **not** address, checked by searching the text: the correlation (or covariance,
-or SD of differences) for a paired t; Student versus Welch ("Welch" does not occur); sphericity,
+or SD of differences) for a paired t; Student versus Welch by name ("Welch" does not occur, though
+Table 7.8's note does say "assuming unequal variance", so the variant distinction is present in the
+manual's examples even though it is never required or named); sphericity,
 epsilon or corrected df for RM ANOVA ("sphericity" does not occur); which d variant or Hedges' g,
 and whether the effect-size convention must be declared ("Hedges" does not occur); an effect size
 for chi-square. Two consequences:
@@ -200,3 +202,61 @@ is why the following are decisions above and not discoveries later:
   handling are not implementation details: every new relation is tested for both, and every new
   handler's round trip runs at the numerical edge of its formula (ADR 0009 consequence), not only on
   typical data.
+
+## Evidence from APA's own sample tables
+
+Chapter 7 of the manual prints sample statistical tables: the manual's own model of how results
+should look. They are style examples, not a stated required set, but they are the closest thing to a
+per-test reporting set the manual contains — and they are evidence for every row of the gap table.
+Read directly from the page (Tables 7.8–7.18).
+
+| Sample table | What it shows | What is missing for reproduction |
+|---|---|---|
+| 7.8, t tests | M and SD per group, `t(40)` with df in the header, exact p, Cohen's d | n (only in the note), no CI |
+| 7.9, post hoc comparisons | cell means, F, exact p, η² | no SD, no n, no df |
+| 7.10, correlations, one sample | **n, M and SD as columns beside the matrix**, lower triangle | p only as asterisks, no CI, and n is per variable, so the n behind any single r is ambiguous |
+| 7.11, correlations, two samples | the matrix only | no M, no SD, one n per sample in the note |
+| 7.12, ANOVA option 1 | cell M and SD, `F(1, 294)`, η² | **no cell n**, no exact p, no CI |
+| 7.13, two-way ANOVA | cell M and SD, F, df, η², for a mixed design | no per-cell n, no exact p, and **no covariance among the repeated measures, no sphericity or correction** |
+| 7.15–7.18, regression | B, β, SE, R², ΔR², and in 7.16–7.18 the CI and exact p | **no M, no SD, no predictor intercorrelations, no residual SD** — t = B/SE is recoverable, the fit is not |
+
+Three conclusions:
+
+1. **The regression gap is real and large.** No sample regression table carries the predictor
+   descriptives or their intercorrelations, so APA's own model of a regression table does not make
+   the fit reproducible — even though §3.7 names a variance-covariance or correlation matrix as the
+   sufficient set for exactly this case. The prose and the examples disagree, and the examples are
+   what authors copy.
+2. **Table 7.10 is the project's best precedent.** Putting n, M and SD beside a correlation matrix
+   is already APA's own layout for one sample. The appendix for a correlation should look like
+   Table 7.10, not like something new.
+3. **The sample tables mostly use asterisks, not exact p**, contradicting §3.7's requirement of
+   exact p. A threshold ("p < .05") widens the rounding interval enormously, which is precisely the
+   case the interval machinery has to handle, and it is the manual's own most common example.
+
+### The motivating case: Table 7.8 is itself inconsistent
+
+Table 7.8 reports `t(40)` for every row, and its note gives n = 24 and n = 16. Student df is
+24 + 16 − 2 = 38; Welch df cannot exceed 38 either (it lies in [15, 38]). There is no test of these
+two groups with df = 40 — 40 is n₁ + n₂, the −2 omitted.
+
+The reported p values do **not** reveal it. All three round correctly at either df:
+
+| t | p at df = 38 | p at df = 40 | reported |
+|---|---|---|---|
+| 0.951 | .3476 | .3473 | .347 |
+| 2.877 | .0066 | .0064 | .006 |
+| 2.635 | .0121 | .0119 | .012 |
+
+So a check that recomputes p from the statistic and df — which is what statcheck does — passes this
+table on all three rows. The inconsistency exists only between n and df, and it is caught only by a
+relation that tests df against n. That is the concrete argument for this ADR's whole design over a
+p-value checker, and it is found in the manual's own exemplar of good reporting.
+
+It is also the standard for how the output must be worded. We can say that n = 24, n = 16 and
+df = 40 cannot all be correct as reported. We cannot say which one is wrong: the n values may be
+wrong, the df may be wrong, or the table may describe a different sample than the note. That is why
+the fixed closing sentence exists.
+
+Uses: a known-answer test (plan §8), the worked example in the validation vignette, and a class
+scenario (plan §9) that needs no invented data.
