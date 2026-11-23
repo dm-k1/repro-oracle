@@ -200,7 +200,7 @@ Three tabs:
 
 - "I can't share my data" — upload data or pick a demo dataset, choose an analysis, give a reason → verdict, downloadable markdown appendix, "what is lost".
 - "Does this paper add up?" — enter reported numbers → consistency verdict with ranges and variants.
-- "Class scenarios" — preset fictional study cards, some with planted inconsistencies or weak data-sharing excuses. The opening card is not fictional: APA's own sample t-test table (Manual 7th ed., Table 7.8) reports `t(40)` with n = 24 and n = 16, where no test gives df = 40. Its p values round correctly at both df = 38 and df = 40, so a p-value checker passes it; only checking df against n catches it (`decisions/0010`). It makes the point before any invented example does, and it shows why the output never says which number is wrong.
+- "Class scenarios" — preset fictional study cards, some with planted inconsistencies or weak data-sharing excuses. The opening card is not fictional: APA's own sample t-test table (Manual 7th ed., Table 7.8) reports `t(40)` with n = 24 and n = 16, where Student df is 38 and Welch df is 35.28. Its p values match df = 40, so the analysis used that df throughout and a p-value checker passes every row; only checking df against n catches it (`decisions/0010`). It makes the point before any invented example does, and it shows why the output never says which number is wrong.
 
 ## 10. Hosting (decided: shinylive)
 

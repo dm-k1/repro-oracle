@@ -236,27 +236,43 @@ Three conclusions:
 
 ### The motivating case: Table 7.8 is itself inconsistent
 
-Table 7.8 reports `t(40)` for every row, and its note gives n = 24 and n = 16. Student df is
-24 + 16 − 2 = 38; Welch df cannot exceed 38 either (it lies in [15, 38]). There is no test of these
-two groups with df = 40 — 40 is n₁ + n₂, the −2 omitted.
+Table 7.8 reports `t(40)` for three independent-samples comparisons, and its note gives n = 24 and
+n = 16. Student df is 24 + 16 − 2 = 38 and Welch df is 35.28, so df = 40 is impossible. 40 is
+n₁ + n₂, the −2 omitted.
 
-The reported p values do **not** reveal it. All three round correctly at either df:
+The p values show that this is not a typo in the header — the analysis used df = 40 throughout:
 
-| t | p at df = 38 | p at df = 40 | reported |
-|---|---|---|---|
-| 0.951 | .3476 | .3473 | .347 |
-| 2.877 | .0066 | .0064 | .006 |
-| 2.635 | .0121 | .0119 | .012 |
+| t | p at df = 38 | p at df = 40 | reported | matches |
+|---|---|---|---|---|
+| 0.951 | .348 | .347 | .347 | df = 40 only |
+| 2.877 | .007 | .006 | .006 | df = 40 only |
+| 2.635 | .012 | .012 | .012 | either |
 
-So a check that recomputes p from the statistic and df — which is what statcheck does — passes this
-table on all three rows. The inconsistency exists only between n and df, and it is caught only by a
-relation that tests df against n. That is the concrete argument for this ADR's whole design over a
-p-value checker, and it is found in the manual's own exemplar of good reporting.
+So the table is internally coherent *with itself* under df = 40, and contradicts only the n in its
+own note. A checker that recomputes p from the reported statistic and the reported df — which is
+what statcheck does — passes all three rows, precisely because the author applied df = 40
+consistently. The inconsistency is reachable only by a relation that tests df against n. That is the
+concrete argument for this ADR's design over a p-value checker, and it is found in the manual's own
+exemplar of good reporting.
 
 It is also the standard for how the output must be worded. We can say that n = 24, n = 16 and
-df = 40 cannot all be correct as reported. We cannot say which one is wrong: the n values may be
-wrong, the df may be wrong, or the table may describe a different sample than the note. That is why
-the fixed closing sentence exists.
+df = 40 cannot all be correct as reported. We cannot say which is wrong: the n values may be wrong,
+the df may be wrong, or the table may describe a different sample than the note. That is why the
+fixed closing sentence exists.
+
+**Correction.** An earlier version of this section claimed the reported p values round correctly at
+both df, so that p could not distinguish them. That is true only of row 3. Rows 1 and 2 match df = 40
+alone, as the table above shows. The error was mine, caught within one cycle by the rule that every
+claim ships with a script (plan §8) — the script computed what the prose had asserted.
+
+**Transcription not yet confirmed.** Row 2 (M = 759, SD = 87, n = 24 versus M = 694, SD = 42,
+n = 16) does not reproduce its own reported statistic: the descriptives give Student t = 2.772 and
+Welch t = 3.151 against a reported 2.877, and pooled d = 0.895 against a reported 0.840. That would
+be a second, independent inconsistency — the statistic against the descriptives — but it may equally
+be a misread cell, or a row-specific n, since the note says a logistic function was fitted per
+participant and such fits can fail for some. The values were read from an image. Before this row is
+used as a fixture, the page must be re-read at higher resolution. The df = 40 finding does not depend
+on it: it follows from the note's n alone.
 
 Uses: a known-answer test (plan §8), the worked example in the validation vignette, and a class
 scenario (plan §9) that needs no invented data.
