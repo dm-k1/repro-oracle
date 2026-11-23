@@ -247,7 +247,7 @@ Prior art to cite: statcheck (Nuijten & Epskamp), JATSdecoder `get.stats()` (Bö
 1. ✅ Package skeleton: sufficient-statistics object, registry, t-test and Pearson handlers, round-trip tests.
 2. ✅ Check engine with rounding ranges and variants (`decisions/0009`–`0012`).
 3. ✅ `coverage_table()` rewrite on the existing handlers: rename `reproducible` → `sufficient`, add `not_checkable` and `choices`, the computed missing/checkable columns and the package test (`decisions/0013`). Stop for review.
-4. `appendix()` with the four blocks, snapshot tests.
+4. ✅ `appendix()` with the four blocks, snapshot tests (the four existing handlers).
 5. χ² (independence, goodness of fit), one-way and factorial ANOVA handlers, each with relations and validation.
 6. Regression family (simple, multiple, moderation, mediation), after verifying JARS Table 3.1 at source.
 7. Release v1: README with the generated table, vignette, app share module, NEWS, tag.
