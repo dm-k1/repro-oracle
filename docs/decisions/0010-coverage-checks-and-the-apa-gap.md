@@ -180,8 +180,10 @@ for chi-square. Two consequences:
 2. For these items the evidence is absence, not prohibition. The honest wording in outputs is "APA
    does not require this", never "APA forbids" or "contrary to APA".
 
-Unverified: the sample statistical tables (Tables 7.8–7.10) are images in the copy consulted and
-were not read. They may name columns relevant to the regression and ANOVA rows of the gap table.
+Superseded: the sample statistical tables (Tables 7.8–7.18) were images in the copy consulted and
+unread at the time of writing. They were read afterwards — see "Evidence from APA's own sample
+tables" below — and Table 7.8 was re-read at 400 dpi after a digit in its note was misread at low
+resolution.
 
 ## Review record
 
