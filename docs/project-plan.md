@@ -72,7 +72,7 @@ This table is the specification `coverage_table()` must generate from the regist
 | χ² goodness of fit | χ², df, p, N, observed counts | observed counts, H0 proportions | H0 proportions, unless equal ("the expected counts depend on them") | χ², df, p (to build) | — | — |
 | One-sample t | n, M, SD, t, df, p, CI, d | n, M, SD, test value | — | df, t, p, CI, d | — | tails, level, d convention |
 | Independent t | n, M, SD per group, t, df, p, CI, d | n, M, SD per group | — | df, t, p, CI, d | — | Student/Welch, tails, level, d convention |
-| Paired t | n, M, SD per condition, t, df, p, CI, d | n, M, SD per condition, r between conditions | r ("t depends on the within-person correlation; per-condition M and SD do not determine it") | df, t, p, CI, d | — | tails, level, d_z / d_av |
+| Paired t | n, M, SD per condition, t, df, p, CI, d | n, M, SD per condition, r between conditions | r ("t depends on the within-person correlation; per-condition M and SD do not determine it") | df, t, p, CI, d | — | tails, level, d convention (d_z, d_rm, d_av, g_av) |
 | Pearson r | n, M, SD of both variables, r, df, p, CI | n, r | — | df, CI, p (via t from r) | M, SD ("r does not depend on them") | tails, level |
 | One-way ANOVA | n, M, SD per group, F, df, p, η² | n, M, SD per group | — | df, F, p, η² (to build) | — | effect-size convention |
 | Factorial between | n, M, SD per cell, F, df, p per effect, partial η² | n, M, SD per cell | — | df, F, p, partial η² per effect (to build) | — | SS type for unbalanced designs, effect-size convention |
@@ -170,7 +170,9 @@ evaluates every equation whose inputs are present, and says how much of the resu
   not numbers), over one shared vocabulary of quantity names.
 - The check is not only about p. Every reported number gets a status: **verified** (recomputed from
   more basic reported numbers, e.g. t from M, SD and n), **coherent** (fits the other derived
-  numbers, e.g. p from t and df), **inconsistent**, or **not checkable** (no relation reaches it).
+  numbers, e.g. p from t and df), **inconsistent**, **not reproducible** (only relations that do not
+  falsify reach it, such as a d whose convention is rarely declared, and none fits), or **not
+  checkable** (no relation reaches it).
 - Coverage level: 0 nothing checkable · 1 internal coherence of statistic, df, p and CI · 2 the
   statistic recomputed from the descriptives · 3 the reported set contains `sufficient`, so the
   result is fully reproducible. The check reports which missing numbers would raise the level.
@@ -183,7 +185,7 @@ evaluates every equation whose inputs are present, and says how much of the resu
   against it (`decisions/0012`).
 - Recompute over every combination of rounding bounds of the reported inputs; the reported statistic must fall inside the resulting range (cf. Nick Brown's `f_range()` logic).
 - The reported statistic itself also gets its own rounding range (not a fixed tolerance).
-- Try variants before flagging: Student vs Welch, with/without continuity correction, one- vs two-tailed. Report which variant fits.
+- Try variants before flagging: Student vs Welch, with/without continuity correction, one- vs two-tailed, confidence level (90, 95, 99%), d convention. Report which variant fits. One choice per result: t, df and both CI bounds must fit under the same test and level, not each on its own (`decisions/0014`).
 - Check df against n (e.g. n₁ + n₂ − 2) and flag mismatches with possible explanations (exclusions, Welch).
 - Check p against the test statistic and df (statcheck rule).
 - Wording: "consistent" / "inconsistent with the reported statistics", never "wrong" or "error". Always add: an inconsistency shows the numbers cannot all be correct as reported, not which one is wrong or why.
