@@ -57,28 +57,67 @@ structure that links the numbers to each other.
      the effect size with its CI, and per-cell n and M with SD (or frequencies, for a categorical
      variable). It is derived from one rule for every handler, not curated per test, because APA
      has no per-test sets to curate (see Context 2). A handler may not add to it on a hunch: an
-     item belongs in `apa` only if §3.7, §6.43 or JARS Table 3.1 puts it there.
+     item belongs in `apa` only if §3.7, §6.43 or JARS Table 3.1 puts it there. This is enforced
+     structurally, not by discipline: `apa` is **constructed** by one function from a small
+     declaration per handler (which quantity is the test statistic, which is the effect size — `d`
+     for the t tests, `r` for a correlation, where the effect size *is* the statistic — and whether
+     the design has per-cell descriptives). A handler cannot hand-write its own `apa`. Review of the
+     first draft found exactly the drift this prevents: one handler's `apa` listed the CI and the
+     other's did not, and neither listed the effect size.
    - `reproducible`: the quantities that determine every reported result (the sufficient set, the
      same numbers `summarise` stores);
    - `relations`: the equations between quantities, each with inputs, one output and a function.
 2. **Checks report coverage, not one verdict.** `check_reported()` evaluates every relation whose
    inputs are present and returns:
-   - a status per reported number — *verified* (recomputed from more basic reported numbers),
-     *coherent* (fits the other derived numbers), *inconsistent*, or *not checkable*;
+   - a status per reported number:
+     - *verified* — the number is the **output** of a holding relation whose inputs were all
+       reported and include at least one descriptive. Being an *input* to such a relation is not
+       enough: n agreeing with df is mutual agreement, not recomputation, and claiming otherwise
+       overstates what was done.
+     - *coherent* — it fits, but as an input, or only via derived numbers (p from t and df).
+     - *unconfirmed* — it feeds a relation that could not be evaluated because another input is
+       missing. The reader is told which: `t_from_descriptives (needs r)`. This is the difference
+       between "we cannot check this" and "we cannot check this *yet*", and it is what tells an
+       author which single number to add.
+     - *inconsistent* — it appears in a relation that fails under every variant. It attaches to
+       every input and the output, because the method cannot say which number is at fault.
+     - *not checkable* — no relation reaches it at all.
    - a coverage level: 0 nothing checkable, 1 internal coherence of statistic/df/p/CI,
-     2 the statistic recomputed from the descriptives, 3 the reported set contains `reproducible`;
+     2 the statistic recomputed from the descriptives while `reproducible` is not fully reported,
+     3 the reported set contains `reproducible`.
+     Level 2 is unreachable for the v1 t and correlation handlers, because for those tests
+     recomputing the statistic from the descriptives *is* having the reproducible set. It is kept,
+     and a test records its unreachability, because RM ANOVA separates the two: uncorrected F
+     follows from per-condition means and the average covariance, while Greenhouse-Geisser needs
+     all pairwise correlations.
    - which missing numbers would raise the level.
+   The **headline verdict is driven by whether any relation was evaluated, not by the level.** The
+   level measures coverage; the verdict measures agreement. With nothing evaluated the output says
+   no check was possible, even at level 3 — level 3 then means "reproducible from what is reported",
+   which is a statement about sufficiency, not a pass.
    `check_t()`, `check_F()` and `check_r()` stay as thin wrappers (plan §5.5).
-3. **Missing quantities are solved for, not skipped.** When a relation's output is reported and one
+3. **Rounding intervals are domain-aware, and a non-finite range is never evidence.** A reported
+   number carries the domain of the quantity, and its rounding interval is intersected with it:
+   r in [−1, 1], SD ≥ 0, n ≥ 1 and integral, p in [0, 1], df ≥ 0. Without this, r = "1.00" becomes
+   [0.995, 1.005], `sqrt(1 − r²)` and `atanh(r)` return NaN, and a correctly reported paper is
+   called inconsistent — found in review at 69 of 3600 Pearson checks, plus 13 crashes, on an
+   ordinary strongly-correlated pre/post design. Clamping alone is not sufficient, because the
+   clamped box still contains r = 1 where `atanh` is infinite, so independently of it: **a relation
+   whose computed range is not finite is treated as not evaluable**, exactly as if an input were
+   missing. It yields no verdict and never an *inconsistent*. The rule is general, not a special
+   case for r, and a test asserts that a non-finite range cannot produce *inconsistent*. This
+   follows from the project's asymmetry: failing to check a correct paper is a limitation, while
+   flagging a correct paper is a false accusation, so every ambiguity resolves towards silence.
+4. **Missing quantities are solved for, not skipped.** When a relation's output is reported and one
    input is missing, the check reports the range of that input consistent with the rest
    ("t is consistent only if r between conditions lies in [.41, .58]"). It is inconsistent only when
    no admissible value works. All intervals come from the reported decimals (rounding ranges, plan
    §6), not from a fixed tolerance.
-4. **The appendix is APA plus the gap.** It opens by citing §3.7 and §6.43, so an author can see the
+5. **The appendix is APA plus the gap.** It opens by citing §3.7 and §6.43, so an author can see the
    requirement it discharges rather than take the package's word for it. `appendix()` prints the APA set, then
    `reproducible` minus `apa` with a one-line reason per added number. The same two fields generate a
    **reporting-gap table** for the README, next to the coverage table.
-5. **Pearson keeps M and SD, as `apa` only.** r is not recomputable from means and SDs, so M and SD
+6. **Pearson keeps M and SD, as `apa` only.** r is not recomputable from means and SDs, so M and SD
    are not part of `reproducible` for Pearson: n and r are. They are stored because the APA
    descriptives table reports them and the check side reads them. The plan §4 row is split into what
    is needed and what is reported anyway. This refines ADR 0009 item 1; the rest of ADR 0009 stands.
@@ -141,3 +180,23 @@ for chi-square. Two consequences:
 
 Unverified: the sample statistical tables (Tables 7.8–7.10) are images in the copy consulted and
 were not read. They may name columns relevant to the regression and ANOVA rows of the gap table.
+
+## Review record
+
+The first implementation of the check engine was reviewed by a reader who had not written it, which
+is why the following are decisions above and not discoveries later:
+
+- Corner-only interval evaluation was **not** exact. Two v1 relations are non-monotone inside
+  realistic rounding boxes: t from descriptives, where ∂SD_diff²/∂SD₁ vanishes at SD₁ = r·SD₂
+  (corner-only gave a maximum t of 15.762 where the truth is 15.851), and two-sided p from t, whose
+  maximum sits at t = 0 when the interval straddles it (corner-only gave 0.996 where the truth is
+  1). Both would have produced false *inconsistent* verdicts. Relations therefore declare interior
+  stationary points, and exactness is verified by dense sampling rather than assumed.
+- Rounding boxes were not clamped to quantity domains, which produced the false positives recorded
+  in Decision 3.
+- *verified* was being applied to a relation's inputs as well as its output, so n "agreeing with"
+  df was reported as verified. Tightened in Decision 2.
+- Interval arithmetic over rounded inputs is the whole method, so its exactness and its domain
+  handling are not implementation details: every new relation is tested for both, and every new
+  handler's round trip runs at the numerical edge of its formula (ADR 0009 consequence), not only on
+  typical data.
