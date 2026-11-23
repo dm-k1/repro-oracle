@@ -124,8 +124,11 @@ structure that links the numbers to each other.
 
 ## Consequences
 
-- `register_handler()` gains validation: `reproducible` must be a subset of the names `summarise`
-  stores, so a handler cannot claim reproducibility from numbers it does not keep.
+- A handler cannot claim reproducibility from numbers it does not keep: `reproducible` must be a
+  subset of the names `summarise` stores. This is enforced by a package test that runs every
+  handler's own `example()` through `sufficient_stats()` and compares the names, not by a check
+  inside `register_handler()` — the names `summarise` returns depend on the data it is given, so a
+  static check at registration time would be a guess about them.
 - Every new handler is built with its relations, so the check side and the share side can no longer
   drift apart. This is also why `check_*()` comes before the remaining handlers (ADR 0009 item 3).
 - The check direction needs its own validation, separate from the round trip: known-answer cases
