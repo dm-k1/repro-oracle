@@ -234,45 +234,48 @@ Three conclusions:
    exact p. A threshold ("p < .05") widens the rounding interval enormously, which is precisely the
    case the interval machinery has to handle, and it is the manual's own most common example.
 
-### The motivating case: Table 7.8 is itself inconsistent
+### Table 7.8: a retracted claim, and what the table actually shows
 
-Table 7.8 reports `t(40)` for three independent-samples comparisons, and its note gives n = 24 and
-n = 16. Student df is 24 + 16 − 2 = 38 and Welch df is 35.28, so df = 40 is impossible. 40 is
-n₁ + n₂, the −2 omitted.
+**Retracted.** Earlier versions of this section claimed that Table 7.8 is internally inconsistent,
+because it reports `t(40)` while its note gives n = 24 and n = 16, for which no test yields df = 40.
+The note gives **n = 18**, not 16. It was misread from a low-resolution render. With n = 24 and
+n = 18, Student df = 24 + 18 − 2 = 40 and the heading is correct. The table is not inconsistent, the
+"statcheck would pass it" argument was built on the misreading, and both are withdrawn. A re-read of
+the page at 400 dpi confirms every other cell of the previous transcription.
 
-The p values show that this is not a typo in the header — the analysis used df = 40 throughout:
+The process lesson is recorded in plan §8: a fixture taken from an external source is verified at
+source resolution **before** a claim is built on it. Interval arithmetic over rounded numbers cannot
+protect against a misread input, and no amount of careful arithmetic downstream recovers from one.
 
-| t | p at df = 38 | p at df = 40 | reported | matches |
-|---|---|---|---|---|
-| 0.951 | .348 | .347 | .347 | df = 40 only |
-| 2.877 | .007 | .006 | .006 | df = 40 only |
-| 2.635 | .012 | .012 | .012 | either |
+What the table does show, recomputed from its own descriptives with n = 24 and n = 18, over the
+rounding box of every reported number (M and SD to the unit):
 
-So the table is internally coherent *with itself* under df = 40, and contradicts only the n in its
-own note. A checker that recomputes p from the reported statistic and the reported df — which is
-what statcheck does — passes all three rows, precisely because the author applied df = 40
-consistently. The inconsistency is reachable only by a relation that tests df against n. That is the
-concrete argument for this ADR's design over a p-value checker, and it is found in the manual's own
-exemplar of good reporting.
+| reported | recomputed range | verdict |
+|---|---|---|
+| t = 2.877 | Student 2.855 – 2.983 | consistent |
+| p = .006 (at t = 2.877, df = 40) | .00641 → .006 | consistent |
+| Cohen's d = 0.840 | pooled 0.890 – 0.930 | **outside** |
+| "assuming unequal variance" (the note) | Welch would give t ≈ 3.20, df ≈ 34.95 | **the numbers fit Student, not Welch** |
 
-It is also the standard for how the output must be worded. We can say that n = 24, n = 16 and
-df = 40 cannot all be correct as reported. We cannot say which is wrong: the n values may be wrong,
-the df may be wrong, or the table may describe a different sample than the note. That is why the
-fixed closing sentence exists.
+So two smaller findings survive, and both are findings this design is built to make:
 
-**Correction.** An earlier version of this section claimed the reported p values round correctly at
-both df, so that p could not distinguish them. That is true only of row 3. Rows 1 and 2 match df = 40
-alone, as the table above shows. The error was mine, caught within one cycle by the rule that every
-claim ships with a script (plan §8) — the script computed what the prose had asserted.
+1. **The stated variant does not match the numbers.** The note says the t tests assume unequal
+   variance, but the reported t and df both fit Student and neither fits Welch. This is exactly the
+   variant-reporting case in plan §6: the check tries Student and Welch, reports which one fits, and
+   can therefore say that the fitting variant is not the one the paper claims to have used.
+2. **The effect size is the one number that cannot be checked.** d = 0.840 lies outside the pooled-SD
+   range implied by the table's own descriptives, and no standard convention tried here (pooled,
+   Hedges' g, average SD, Glass's delta, or d derived from Welch t) reproduces it. Since the manual
+   addresses neither which d variant to use nor whether the convention must be declared, the value
+   is unfalsifiable rather than wrong. That is the evidence for the project's own rule that an
+   effect size is reported only with a declared convention, and the appendix must say that this rule
+   is ours and not APA's.
 
-**Transcription not yet confirmed.** Row 2 (M = 759, SD = 87, n = 24 versus M = 694, SD = 42,
-n = 16) does not reproduce its own reported statistic: the descriptives give Student t = 2.772 and
-Welch t = 3.151 against a reported 2.877, and pooled d = 0.895 against a reported 0.840. That would
-be a second, independent inconsistency — the statistic against the descriptives — but it may equally
-be a misread cell, or a row-specific n, since the note says a logistic function was fitted per
-participant and such fits can fail for some. The values were read from an image. Before this row is
-used as a fixture, the page must be re-read at higher resolution. The df = 40 finding does not depend
-on it: it follows from the note's n alone.
+Its best use is therefore the opposite of what was planned: Table 7.8 is a **correctly reported
+table that must never be flagged inconsistent** on its statistic, df or p — a positive fixture for
+the false-positive gate, which matters more to this project than another planted error.
 
-Uses: a known-answer test (plan §8), the worked example in the validation vignette, and a class
-scenario (plan §9) that needs no invented data.
+Uses: a positive known-answer fixture (plan §8) asserting that its t, df and p are never flagged;
+the variant-mismatch and undeclared-convention cases in the validation vignette; and a class
+scenario (plan §9) about a real table whose numbers are right while its stated method does not
+match them.
