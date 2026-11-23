@@ -1,6 +1,6 @@
 # 0014. CI confidence levels, paired d conventions, readable variant labels
 
-Date: 2026-11-23 · Status: proposed
+Date: 2026-11-23 · Status: accepted
 
 ## Context
 

@@ -246,7 +246,7 @@ Prior art to cite: statcheck (Nuijten & Epskamp), JATSdecoder `get.stats()` (Bö
 
 1. ✅ Package skeleton: sufficient-statistics object, registry, t-test and Pearson handlers, round-trip tests.
 2. ✅ Check engine with rounding ranges and variants (`decisions/0009`–`0012`).
-3. `coverage_table()` rewrite on the existing handlers: rename `reproducible` → `sufficient`, add `not_checkable` and `choices`, the computed missing/checkable columns and the package test (`decisions/0013`). Stop for review.
+3. ✅ `coverage_table()` rewrite on the existing handlers: rename `reproducible` → `sufficient`, add `not_checkable` and `choices`, the computed missing/checkable columns and the package test (`decisions/0013`). Stop for review.
 4. `appendix()` with the four blocks, snapshot tests.
 5. χ² (independence, goodness of fit), one-way and factorial ANOVA handlers, each with relations and validation.
 6. Regression family (simple, multiple, moderation, mediation), after verifying JARS Table 3.1 at source.
@@ -265,5 +265,5 @@ Prior art to cite: statcheck (Nuijten & Epskamp), JATSdecoder `get.stats()` (Bö
 
 - Package name.
 - Default disclosure threshold (5? 10?).
-- Which d convention is the default, and how users override it.
+- ~~Which d convention is the default~~ Decided: none. The check tries every convention and reports which fit (`decisions/0014`); the appendix asks the author to declare it as a choice (`decisions/0010`, `decisions/0013`).
 - Exact class time available (shapes the scenario set).
