@@ -1,7 +1,7 @@
 # Reproducibility oracle — project plan
 
 Status: design decisions up to 16 Nov 2026. Package name: open (working name `reprokit`).
-Changed since: repository layout → see `decisions/0001-two-repositories.md`; verdict rule and coverage table (§3, §4, §12) → see `decisions/0004-sufficiency-rule-for-verdicts.md`; framing, checks and appendix (§1, §2, §4, §5.5, §6) → see `decisions/0010-coverage-checks-and-the-apa-gap.md`, which grounds the APA baseline in the Publication Manual (7th ed.) §3.7, §6.43, §6.44, §1.14 and JARS Table 3.1; coverage model, the one coverage table, the appendix blocks and the v1 scope (§2, §4, §5.5, §6, §12, §13) → see `decisions/0013-coverage-is-apa-versus-sufficient-and-v1-scope.md`, which supersedes ADR 0010 points 1 and 5.
+Changed since: repository layout → see `decisions/0001-two-repositories.md`; verdict rule and coverage table (§3, §4, §12) → see `decisions/0004-sufficiency-rule-for-verdicts.md`; framing, checks and appendix (§1, §2, §4, §5.5, §6) → see `decisions/0010-coverage-checks-and-the-apa-gap.md`, which grounds the APA baseline in the Publication Manual (7th ed.) §3.7, §6.43, §6.44, §1.14 and JARS–Quant (Manual Table 3.1) for the tests and outcome descriptives; see `decisions/0018-jars-and-the-regression-apa-sets.md`; coverage model, the one coverage table, the appendix blocks and the v1 scope (§2, §4, §5.5, §6, §12, §13) → see `decisions/0013-coverage-is-apa-versus-sufficient-and-v1-scope.md`, which supersedes ADR 0010 points 1 and 5.
 
 ## 1. Purpose and framing
 
@@ -64,7 +64,7 @@ Every verdict ends with "sharing the raw data remains the standard", citing APA 
 
 **In one line:** per test, *missing = sufficient − APA*; per APA number, *checkable from the sufficient set or not, and why*; per test, *the choices to declare* (`decisions/0013`).
 
-This table is the specification `coverage_table()` must generate from the registry. Once the function covers every v1 test, this section points to its output instead of carrying a hand-made copy. Missing and checkable are computed (set difference; reachability through `relations`); only the reasons and the choices are declared. Rows for handlers that do not exist yet state what their relations must reach; the regression rows are pending verification of JARS Table 3.1 at source (§8).
+This table is the specification `coverage_table()` must generate from the registry. Once the function covers every v1 test, this section points to its output instead of carrying a hand-made copy. Missing and checkable are computed (set difference; reachability through `relations`); only the reasons and the choices are declared. Rows for handlers that do not exist yet state what their relations must reach.
 
 | Test | APA reports | Sufficient | Missing (reason) | Checkable | Not checkable (reason) | Choices to declare |
 |---|---|---|---|---|---|---|
@@ -76,10 +76,10 @@ This table is the specification `coverage_table()` must generate from the regist
 | Pearson r | n, M, SD of both variables, r, df, p, CI | n, r | — | df, CI, p (via t from r) | M, SD ("r does not depend on them") | tails, level |
 | One-way ANOVA | n, M, SD per group, F, df, p, η² | n, M, SD per group | — | df, F, p, η² (to build) | — | effect-size convention |
 | Factorial between | n, M, SD per cell, F, df, p per effect, partial η² | n, M, SD per cell | — | df, F, p, partial η² per effect (to build) | — | SS type for unbalanced designs, effect-size convention |
-| Simple regression | n, M, SD of X and Y, b, SE, t, p, R² (pending JARS) | n, M, SD of X and Y, r | — (r = b · SD_x / SD_y) | to build | — | — |
-| Multiple regression | n, M, SD per variable, b, SE, t, p, R², F (pending JARS) | n, M, SD, correlation matrix of all model columns | the correlations ("coefficients depend on how the predictors overlap") | to build | — | factor coding |
+| Simple regression | n, M, SD of X and Y, b, SE, t, p, R² | n, M, SD of X and Y, r | — (r = b · SD_x / SD_y) | to build | — | — |
+| Multiple regression | n, M, SD per variable, b, SE, t, p, R², F | n, M, SD, correlation matrix of all model columns | the correlations ("coefficients depend on how the predictors overlap") | to build | — | factor coding |
 | Moderation | as multiple regression | + moments of the product X·Z | the X·Z moments ("cannot be derived from X and Z summaries") | to build | — | centering, coding |
-| Simple mediation | a, b, c, c′, a·b, its CI, n (pending JARS) | n, M, SD and correlations of X, M, Y | the correlations | a, b, c, c′, a·b, Sobel (to build) | bootstrap CI ("bootstrap resamples cases; summaries cannot") | CI method |
+| Simple mediation | a, b, c, c′, a·b, its CI, n, M, SD of X, M, Y | n, M, SD and correlations of X, M, Y | the correlations of X, M, Y | a, b, c, c′, a·b, Sobel (to build) | bootstrap CI ("bootstrap resamples cases; summaries cannot") | CI method |
 
 Triage-only in v1 (a verdict and advice, no appendix or check). Verdicts follow the three-condition rule in §3 (`decisions/0004`); "fails" names the condition that moves a row down.
 
@@ -164,7 +164,7 @@ Each analysis type is a handler that defines: how to triage, what to store, how 
 evaluates every equation whose inputs are present, and says how much of the result that covers
 (`decisions/0010`).
 
-- Each handler declares `apa` (what APA 7 / JARS requires), `sufficient` (what determines every
+- Each handler declares `apa` (what APA 7 / JARS requires; which source covers which part: ADR 0018), `sufficient` (what determines every
   result; renamed from `reproducible`, `decisions/0013`), `relations` (the equations),
   `not_checkable` (a reason per APA number no relation reaches) and `choices` (declarations that are
   not numbers), over one shared vocabulary of quantity names.
@@ -249,7 +249,7 @@ Prior art to cite: statcheck (Nuijten & Epskamp), JATSdecoder `get.stats()` (Bö
 3. ✅ `coverage_table()` rewrite on the existing handlers: rename `reproducible` → `sufficient`, add `not_checkable` and `choices`, the computed missing/checkable columns and the package test (`decisions/0013`). Stop for review.
 4. ✅ `appendix()` with the four blocks, snapshot tests (the four existing handlers).
 5. χ² (independence, goodness of fit), one-way and factorial ANOVA handlers, each with relations and validation.
-6. Regression family (simple, multiple, moderation, mediation), after verifying JARS Table 3.1 at source.
+6. Regression family (simple, multiple, moderation, mediation).
 7. Release v1: README with the generated table, vignette, app share module, NEWS, tag.
 8. Shiny app tabs + scenario cards; shinylive deployment via GitHub Actions.
 9. (v2) synthetic route; random-intercept model.
