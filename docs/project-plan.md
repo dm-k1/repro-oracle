@@ -68,8 +68,8 @@ This table is the specification `coverage_table()` must generate from the regist
 
 | Test | APA reports | Sufficient | Missing (reason) | Checkable | Not checkable (reason) | Choices to declare |
 |---|---|---|---|---|---|---|
-| χ² independence | χ², df, p, N, the contingency table, V | the contingency table | — | χ², df, p, V (to build) | — | continuity correction for 2×2 |
-| χ² goodness of fit | χ², df, p, N, observed counts | observed counts, H0 proportions | H0 proportions, unless equal ("the expected counts depend on them") | χ², df, p (to build) | — | — |
+| χ² independence | χ², df, p, N, the contingency table, V | the contingency table | — | χ², df, p, V | — | continuity correction for 2×2 |
+| χ² goodness of fit | χ², df, p, N, observed counts | observed counts, H0 proportions | H0 proportions, unless equal ("the expected counts depend on them") | χ², df, p | — | — |
 | One-sample t | n, M, SD, t, df, p, CI, d | n, M, SD, test value | — | df, t, p, CI, d | — | tails, level, d convention |
 | Independent t | n, M, SD per group, t, df, p, CI, d | n, M, SD per group | — | df, t, p, CI, d | — | Student/Welch, tails, level, d convention |
 | Paired t | n, M, SD per condition, t, df, p, CI, d | n, M, SD per condition, r between conditions | r ("t depends on the within-person correlation; per-condition M and SD do not determine it") | df, t, p, CI, d | — | tails, level, d convention (d_z, d_rm, d_av, g_av) |
@@ -156,7 +156,7 @@ Each analysis type is a handler that defines: how to triage, what to store, how 
 | `coverage_table()` | share | the one coverage table (§4), generated from the registry (`decisions/0013`) |
 | `synthesize()` | share | (later) synthetic data via synthpop + utility report |
 | `check_reported()` | check | the engine: evaluates every relation whose inputs are reported, returns a status per number, a coverage level and what is missing |
-| `check_*()` | check | thin wrappers around `check_reported()`, from reported numbers only: `check_t()`, `check_r()` and `check_F()` exist; `check_chisq()` (`decisions/0015`) comes with the χ² handlers. A reported CI is checked inside its test's wrapper, not by a wrapper of its own |
+| `check_*()` | check | thin wrappers around `check_reported()`, from reported numbers only: `check_t()`, `check_r()`, `check_F()` and `check_chisq()` exist (`decisions/0015`, `decisions/0016`). A reported CI is checked inside its test's wrapper, not by a wrapper of its own |
 
 ## 6. Check direction: rules
 
@@ -248,7 +248,7 @@ Prior art to cite: statcheck (Nuijten & Epskamp), JATSdecoder `get.stats()` (Bö
 2. ✅ Check engine with rounding ranges and variants (`decisions/0009`–`0012`).
 3. ✅ `coverage_table()` rewrite on the existing handlers: rename `reproducible` → `sufficient`, add `not_checkable` and `choices`, the computed missing/checkable columns and the package test (`decisions/0013`). Stop for review.
 4. ✅ `appendix()` with the four blocks, snapshot tests (the four handlers that existed then: one-sample, independent and paired t; Pearson).
-5. χ² (independence, goodness of fit), one-way and factorial ANOVA handlers, each with relations and validation. Done so far: one-way ANOVA and `check_F()` (`decisions/0015`).
+5. χ² (independence, goodness of fit), one-way and factorial ANOVA handlers, each with relations and validation. Done so far: one-way ANOVA and `check_F()` (`decisions/0015`); χ² independence and goodness of fit and `check_chisq()` (`decisions/0016`, `decisions/0021`).
 6. Regression family (simple, multiple, moderation, mediation).
 7. Release v1: README with the generated table, vignette, app share module, NEWS, tag.
 8. Shiny app tabs + scenario cards; shinylive deployment via GitHub Actions.
