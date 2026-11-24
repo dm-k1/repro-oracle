@@ -79,7 +79,7 @@ This table is the specification `coverage_table()` must generate from the regist
 | Simple regression | n, M, SD of X and Y, b, SE, t, p, R² | n, M, SD of X and Y, r | — (r = b · SD_x / SD_y) | to build | — | — |
 | Multiple regression | n, M, SD per variable, b, SE, t, p, R², F | n, M, SD, correlation matrix of all model columns | the correlations ("coefficients depend on how the predictors overlap") | to build | — | factor coding |
 | Moderation | as multiple regression | + moments of the product X·Z | the X·Z moments ("cannot be derived from X and Z summaries") | to build | — | centering, coding |
-| Simple mediation | a, b, c, c′, a·b, its CI, n, M, SD of X, M, Y | n, M, SD and correlations of X, M, Y | the correlations of X, M, Y | a, b, c, c′, a·b, Sobel (to build) | bootstrap CI ("bootstrap resamples cases; summaries cannot") | CI method |
+| Simple mediation | a, b, c, c′, a·b, its CI, n, M, SD of X, M, Y | n, M, SD and correlations of X, M, Y | the correlations of X, M, Y | a, b, c, c′ (b, SE, t, p each) (to build) | a·b and its CI ("inferred by bootstrap, which resamples cases; summaries cannot") | — |
 
 Triage-only in v1 (a verdict and advice, no appendix or check). Verdicts follow the three-condition rule in §3 (`decisions/0004`); "fails" names the condition that moves a row down.
 
@@ -156,7 +156,7 @@ Each analysis type is a handler that defines: how to triage, what to store, how 
 | `coverage_table()` | share | the one coverage table (§4), generated from the registry (`decisions/0013`) |
 | `synthesize()` | share | (later) synthetic data via synthpop + utility report |
 | `check_reported()` | check | the engine: evaluates every relation whose inputs are reported, returns a status per number, a coverage level and what is missing |
-| `check_*()` | check | thin wrappers around `check_reported()`, from reported numbers only: `check_t()`, `check_r()`, `check_F()` and `check_chisq()` exist (`decisions/0015`, `decisions/0016`). A reported CI is checked inside its test's wrapper, not by a wrapper of its own |
+| `check_*()` | check | thin wrappers around `check_reported()`, from reported numbers only: `check_t()`, `check_r()`, `check_F()` and `check_chisq()` exist (`decisions/0015`, `decisions/0016`); `check_lm()` and `check_mediation()` come with the regression family (`decisions/0020`). A reported CI is checked inside its test's wrapper, not by a wrapper of its own |
 
 ## 6. Check direction: rules
 
@@ -249,7 +249,7 @@ Prior art to cite: statcheck (Nuijten & Epskamp), JATSdecoder `get.stats()` (Bö
 3. ✅ `coverage_table()` rewrite on the existing handlers: rename `reproducible` → `sufficient`, add `not_checkable` and `choices`, the computed missing/checkable columns and the package test (`decisions/0013`). Stop for review.
 4. ✅ `appendix()` with the four blocks, snapshot tests (the four handlers that existed then: one-sample, independent and paired t; Pearson).
 5. ✅ χ² (independence, goodness of fit), one-way and factorial ANOVA handlers, each with relations and validation. Done so far: one-way ANOVA and `check_F()` (`decisions/0015`); χ² independence and goodness of fit and `check_chisq()` (`decisions/0016`, `decisions/0021`); two-factor between ANOVA through `check_F(effect =)` (`decisions/0017`, `decisions/0019`, `decisions/0022`).
-6. Regression family (simple, multiple, moderation, mediation).
+6. Regression family (simple, multiple, moderation, mediation), per `decisions/0020`.
 7. Release v1: README with the generated table, vignette, app share module, NEWS, tag.
 8. Shiny app tabs + scenario cards; shinylive deployment via GitHub Actions.
 9. (v2) synthetic route; random-intercept model.

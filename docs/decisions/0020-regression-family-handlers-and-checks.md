@@ -1,6 +1,6 @@
 # 0020. Regression family: handlers per plan row, multi-term designs, check relations
 
-Date: 2026-11-24 (revised 2026-11-25) · Status: proposed
+Date: 2026-11-24 (revised and accepted 2026-11-25) · Status: accepted
 
 ## Context
 
