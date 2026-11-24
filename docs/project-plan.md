@@ -74,7 +74,7 @@ This table is the specification `coverage_table()` must generate from the regist
 | Independent t | n, M, SD per group, t, df, p, CI, d | n, M, SD per group | — | df, t, p, CI, d | — | Student/Welch, tails, level, d convention |
 | Paired t | n, M, SD per condition, t, df, p, CI, d | n, M, SD per condition, r between conditions | r ("t depends on the within-person correlation; per-condition M and SD do not determine it") | df, t, p, CI, d | — | tails, level, d convention (d_z, d_rm, d_av, g_av) |
 | Pearson r | n, M, SD of both variables, r, df, p, CI | n, r | — | df, CI, p (via t from r) | M, SD ("r does not depend on them") | tails, level |
-| One-way ANOVA | n, M, SD per group, F, df, p, η² | n, M, SD per group | — | df, F, p, η² | — | effect-size convention |
+| One-way ANOVA | n, M, SD per group, F, df, p, η² | n, M, SD per group | — | df, F, p, η² | — | effect-size convention; variance assumption (equal variances, classical F, not Welch's) |
 | Factorial between | n, M, SD per cell, F, df, p per effect, partial η² | n, M, SD per cell | — | df, F, p, partial η² per effect (to build) | — | SS type for unbalanced designs, effect-size convention |
 | Simple regression | n, M, SD of X and Y, b, SE, t, p, R² | n, M, SD of X and Y, r | — (r = b · SD_x / SD_y) | to build | — | — |
 | Multiple regression | n, M, SD per variable, b, SE, t, p, R², F | n, M, SD, correlation matrix of all model columns | the correlations ("coefficients depend on how the predictors overlap") | to build | — | factor coding |
