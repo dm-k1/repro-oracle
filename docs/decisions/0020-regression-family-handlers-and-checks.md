@@ -1,6 +1,6 @@
 # 0020. Regression family: handlers per plan row, multi-term designs, check relations
 
-Date: 2026-11-24 · Status: proposed
+Date: 2026-11-24 (revised 2026-11-25) · Status: proposed
 
 ## Context
 
@@ -26,13 +26,18 @@ Build step 6 adds simple regression, multiple regression, moderation and simple 
    - CI = b ± t_crit · SE;
    - F = (R² / df1) / ((1 − R²) / df2), with df1 = k and df2 = n − k − 1;
    - simple regression only: R² = r², t² = F, and r = b · SD_x / SD_y;
-   - mediation: c = c′ + a·b, and the Sobel family of z tests.
+   - mediation: each path a, b, c and c′ is a regression coefficient with its own SE, t and p.
+6. **The indirect effect is inferred by a method the summaries cannot reproduce.**
+   - Papers test a·b with a bootstrap CI, which resamples cases (plan §4: "summaries cannot").
+   - Sobel-type z tests can be computed from a, b and their SEs, but the field has replaced them
+     with the bootstrap. Checking them would endorse a test that the paper usually did not run.
 
 ## Decision
 
 **In one line:** each plan row gets its own handler, all sharing the lm code. `apa_design()` gains
-a list of terms and a model level. Checks are coherence among the reported numbers. A Sobel
-variant can falsify, but adjusted R², β and centering cannot.
+a list of terms and a model level. Checks are coherence among the reported numbers. For mediation,
+only the in-model paths a, b, c and c′ are checked, and nothing is said about the indirect effect.
+Adjusted R², β and centering do not falsify.
 
 1. **There are four handlers, one per plan row.**
    - `lm_simple`, `lm_multiple` and `lm_moderation` are registered with their own `matches`, APA
@@ -51,10 +56,11 @@ variant can falsify, but adjusted R², β and centering cannot.
    - Share: `y ~ x` with `test = "mediation"` and the test argument `mediator = "m"` (ADR 0016
      point 4), plus `data`.
    - Stored: n, the means and the covariance matrix of X, M and Y.
-   - Reproduced: the paths a, b, c and c′, then a·b, and the Sobel SE, z and p.
+   - Reproduced: the three regressions (M on X; Y on X; Y on X and M), with b, SE, t and p for the
+     paths a, c, b and c′. No indirect effect, no Sobel test.
    - Two or three fitted lm objects as input come later.
-   - The bootstrap CI is "not checkable" ("bootstrap resamples cases; summaries cannot", as in
-     plan §4) and goes in `lost`.
+   - The indirect effect a·b and its CI are "not checkable" ("inferred by bootstrap, which
+     resamples cases; summaries cannot"). The bootstrap CI goes in `lost`.
 3. **`apa_design()` gains `terms` and `model`.**
    - `terms = NA_integer_` means a variable number of coefficients, like `cells = NA` in ADR 0015.
      The per-term quantities are b, SE, t, p and, when `ci = TRUE`, the CI.
@@ -84,20 +90,20 @@ variant can falsify, but adjusted R², β and centering cannot.
    - **β (standardised coefficient):** β = b · SD_x / SD_y needs the SDs from the APA set. Papers
      use "b" and "β" inconsistently, so a reported β that does not fit means "not evaluable as
      labelled". This is the ambiguity-towards-silence rule.
-7. **Mediation check relations:**
-   - a·b is an interval product. Its corners are exact when the signs of a and b are known from
-     the intervals. When an interval contains 0, the range is the min and max over the four
-     corners, which is still exact for a product.
-   - c = c′ + a·b. This is exact for OLS on one sample, and its range comes from rounding.
-   - **Sobel family: variant kind `test`, values `sobel`, `aroian` and `goodman`, falsifying.**
-     - The SE is √(b²·SE_a² + a²·SE_b² + s·SE_a²·SE_b²), with s = 0, +1 or −1.
-     - z and p share one choice through `shared_choice()` (ADR 0014 point 2).
-     - It falsifies for the same reason as Yates in ADR 0016: each is an exact formula, so a z that
-       fits none of them is an inconsistency.
+7. **Mediation checks only the in-model paths.**
+   - Each path (a, b, c, c′) is checked as a regression coefficient with the point 4 relations: t
+     from b and SE, p from t and df_resid, and the CI. df_resid is n − 2 for a and c, and n − 3 for
+     b and c′.
+   - No relation involves a·b. The identity c = c′ + a·b is not used, because it is a statement
+     about the indirect effect.
+   - Sobel, Aroian and Goodman z tests are not computed, not checked and not offered as variants.
+   - A reported a·b or indirect-effect CI is listed as not checkable. The print says why, and never
+     marks it as fitting or not fitting.
 8. **Choices to declare** (unchanged from plan §4):
    - multiple regression: the factor coding;
    - moderation: centering and coding;
-   - mediation: the CI method.
+   - mediation: none in v1. The indirect effect's CI method would be the choice, but the indirect
+     effect is not checked (point 7).
 
    None of them can falsify from reported numbers. Centering changes the lower-order b but not the
    interaction b, and the check uses no relation that depends on it. The choices go to the
@@ -109,6 +115,7 @@ variant can falsify, but adjusted R², β and centering cannot.
     - ΔR² for hierarchical steps;
     - partial and semi-partial correlations;
     - heteroscedasticity-robust SEs (they go in `lost`);
+    - any check of the indirect effect (a·b, Sobel-type tests, bootstrap or Monte Carlo CIs);
     - multiple mediators;
     - moderated mediation;
     - Johnson–Neyman intervals;
@@ -122,7 +129,8 @@ Alternatives considered:
 | One `lm` handler that emits several coverage rows | Breaks "one row per handler" in the registry and in `coverage_table()`, and the per-row `matches` logic would live inside one handler anyway. |
 | Make the general `lm` the multiple-regression row | Then every lm (polynomials, three-way interactions, weighted fits with an offset) would claim the v1 multiple-regression APA set, which does not describe them. |
 | A separate `mediation()` share function | Plan §5.3 already has the formula route for tests without a model object, and ADR 0016 gave it test arguments. A new entry point duplicates it. |
-| Sobel variants as a convention | They are exact formulas of the same reported numbers. Not falsifying would let any wrong z pass as "not reproducible". |
+| Sobel family as a falsifying variant | It checks a test the paper usually did not run, because the bootstrap replaced it. A matching Sobel z would lend credibility to an inference the summaries cannot reproduce. |
+| Check a·b as a product of a and b, or c = c′ + a·b | Both are claims about the indirect effect. Staying silent on it keeps the message simple: the paths are checkable, the indirect inference is not. |
 | β as falsifying | Correct papers that write "β" for unstandardised b would be flagged. That breaks the false-positive gate. |
 | Infer k from the number of reported terms | Papers often omit control variables from the table, so this accuses correct papers. |
 
@@ -131,9 +139,9 @@ Alternatives considered:
 - **Engine changes:**
   - `apa_design()` gets `terms` and `model`;
   - per-term quantities are named by term;
-  - new quantities b, se, r2, r2_adj (variant label), beta, a, b_path, c, c_prime, ab and z. Their
-    exact names are fixed in code, without clashing with the existing ones;
-  - a `sobel` variant kind with three labels in `variant_labels()`;
+  - new quantities b, se, r2, r2_adj (variant label) and beta. The mediation paths are terms named
+    a, b, c and c_prime of those quantities. The exact names are fixed in code, without clashing
+    with the existing ones;
   - `k` and `mediator` as declared test arguments.
 - **Registry:**
   - the narrow lm handlers come before `lm`;
@@ -146,28 +154,29 @@ Alternatives considered:
   - `check-known-answers.R`:
     - `summary(lm)` on mtcars for simple (`mpg ~ wt`), multiple (`mpg ~ wt + hp + factor(am)`) and
       moderation (`mpg ~ wt * hp`);
-    - a mediation example compared with a hand computation of a, b, c, c′ and the three Sobel
-      SEs.
-  - `check-range-exactness.R`: entries for t = b/SE, the CI, F from R², and a·b. For a·b, cover
-    intervals on both sides of 0.
+    - a mediation example whose paths are compared with the three `lm()` fits.
+  - `check-range-exactness.R`: entries for t = b/SE, the CI, and F from R².
   - `roundtrip-simulation.R` and `check-designs.R`:
     - k = 1 to 6;
     - factor predictors;
     - weighted fits for the three lm rows;
-    - mediation with small and large indirect effects.
+    - mediation with small and large paths.
   - `check-false-positives.R` (the release gate): correct papers that report adjusted R² as R²,
-    unstandardised b labelled β, any of the three Sobel variants, and a subset of terms are never
-    flagged as inconsistent.
+    unstandardised b labelled β, a subset of terms, and mediation papers that report a·b with a
+    bootstrap CI are never flagged as inconsistent. The a·b numbers are never marked as fitting
+    or not fitting.
   - `check-planted-errors.R`:
     - a digit changed in b, SE, t or p;
     - an F that does not match R²;
     - df from the wrong k;
-    - c ≠ c′ + a·b;
-    - a Sobel z with the p of another variant.
+    - a mediation path with the wrong df_resid.
 - **Plan edits after acceptance:**
   - §5.5 lists `check_lm()` and `check_mediation()`;
-  - §13 step 6 points to this ADR.
+  - §13 step 6 points to this ADR;
+  - the §4 mediation row: checkable becomes "a, b, c, c′ (b, SE, t, p each)", not checkable adds
+    "a·b and its CI (inferred by bootstrap, which resamples cases; summaries cannot)", and the
+    choices become "—".
 
-  The §4 rows are unchanged.
+  The other §4 rows are unchanged.
 - **Open until implementation:** whether `lm_moderation` should also accept a numeric × factor
   term with more than two levels. In v1 it does not, and such a fit falls back to `lm`.
