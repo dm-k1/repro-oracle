@@ -31,7 +31,8 @@ Date: 2026-11-24 · Status: accepted
 - ADR 0017 point 6 is amended on N only. Its other points stand.
 - The known-answer and false-positive scripts in `reprokit/inst/validation/` cover partial ω² with
   the corrected N (commit eafe4cb).
-- **Open:**
-  - The one-way handler keeps `eta2` in [0, 1] even though its ω² variant can be negative too.
-  - Whether a correctly reported negative ω² in a one-way paper can be flagged is checked
-    separately. If it can, a follow-up gives the one-way handler the same domain.
+- **Resolved (2026-11-25):** the one-way handler had the same problem. A correctly reported
+  negative ω² (for example F = 0.00, ω² = −.07) made the check stop with an input error, so a
+  correct paper could not be checked at all. The one-way handler now also has the `eta2` domain
+  [−1, 1] (reprokit commit 186e2c3), and `check-false-positives.R` includes one-way designs whose
+  ω² prints negative.
