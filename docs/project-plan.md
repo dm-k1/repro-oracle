@@ -1,7 +1,7 @@
 # Reproducibility oracle — project plan
 
-Status: design decisions up to 24 Nov 2026. Package name: open (working name `reprokit`).
-Changed since: repository layout → see `decisions/0001-two-repositories.md`; verdict rule and coverage table (§3, §4, §12) → see `decisions/0004-sufficiency-rule-for-verdicts.md`; framing, checks and appendix (§1, §2, §4, §5.5, §6) → see `decisions/0010-coverage-checks-and-the-apa-gap.md`, which grounds the APA baseline in the Publication Manual (7th ed.) §3.7, §6.43, §6.44, §1.14 and JARS–Quant (Manual Table 3.1) for the tests and outcome descriptives; see `decisions/0018-jars-and-the-regression-apa-sets.md`; coverage model, the one coverage table, the appendix blocks and the v1 scope (§2, §4, §5.5, §6, §12, §13) → see `decisions/0013-coverage-is-apa-versus-sufficient-and-v1-scope.md`, which supersedes ADR 0010 points 1 and 5; the build step 5 handlers (one-way ANOVA, χ², factorial ANOVA; §4, §5.5, §13) → see `decisions/0015-oneway-anova-f-range-and-engine-extensions.md`, `decisions/0016-chi-squared-from-counts.md` and `decisions/0017-factorial-anova-effects-ss-type-and-exact-ranges.md`.
+Status: design decisions up to 25 Nov 2026. Package name: open (working name `reprokit`).
+Changed since: repository layout → see `decisions/0001-two-repositories.md`; verdict rule and coverage table (§3, §4, §12) → see `decisions/0004-sufficiency-rule-for-verdicts.md`; framing, checks and appendix (§1, §2, §4, §5.5, §6) → see `decisions/0010-coverage-checks-and-the-apa-gap.md`, which grounds the APA baseline in the Publication Manual (7th ed.) §3.7, §6.43, §6.44, §1.14 and JARS–Quant (Manual Table 3.1) for the tests and outcome descriptives; see `decisions/0018-jars-and-the-regression-apa-sets.md`; coverage model, the one coverage table, the appendix blocks and the v1 scope (§2, §4, §5.5, §6, §12, §13) → see `decisions/0013-coverage-is-apa-versus-sufficient-and-v1-scope.md`, which supersedes ADR 0010 points 1 and 5; the build step 5 handlers (one-way ANOVA, χ², factorial ANOVA; §4, §5.5, §13) → see `decisions/0015-oneway-anova-f-range-and-engine-extensions.md`, `decisions/0016-chi-squared-from-counts.md` and `decisions/0017-factorial-anova-effects-ss-type-and-exact-ranges.md`; the regression family (§4, §5.5, §13) → see `decisions/0020-regression-family-handlers-and-checks.md`.
 
 ## 1. Purpose and framing
 
@@ -76,10 +76,10 @@ This table is the specification `coverage_table()` must generate from the regist
 | Pearson r | n, M, SD of both variables, r, df, p, CI | n, r | — | df, CI, p (via t from r) | M, SD ("r does not depend on them") | tails, level |
 | One-way ANOVA | n, M, SD per group, F, df, p, η² | n, M, SD per group | — | df, F, p, η² | — | effect-size convention; variance assumption (equal variances, classical F, not Welch's) |
 | Factorial between | n, M, SD per cell, F, df, p per effect, partial η² | n, M, SD per cell | — | df, F, p, partial η² per effect (exact F for df1 = 1 effects and balanced main effects; coherence only otherwise) | — | SS type for unbalanced designs, effect-size convention |
-| Simple regression | n, M, SD of X and Y, b, SE, t, p, R² | n, M, SD of X and Y, r | — (r = b · SD_x / SD_y) | to build | — | — |
-| Multiple regression | n, M, SD per variable, b, SE, t, p, R², F | n, M, SD, correlation matrix of all model columns | the correlations ("coefficients depend on how the predictors overlap") | to build | — | factor coding |
-| Moderation | as multiple regression | + moments of the product X·Z | the X·Z moments ("cannot be derived from X and Z summaries") | to build | — | centering, coding |
-| Simple mediation | a, b, c, c′, a·b, its CI, n, M, SD of X, M, Y | n, M, SD and correlations of X, M, Y | the correlations of X, M, Y | a, b, c, c′ (b, SE, t, p each) (to build) | a·b and its CI ("inferred by bootstrap, which resamples cases; summaries cannot") | — |
+| Simple regression | n, M, SD of X and Y, b, SE, t, df, p, CI, R², F | n, M, SD of X and Y, r | — (r = b · SD_x / SD_y) | b, SE, t, p, CI; R², F, df, model p (also R² = r², t² = F) | — | level, R² convention (R² or adjusted R²) |
+| Multiple regression | n, M, SD per variable, b, SE, t, df, p, CI per term, R², F | n, M, SD, correlation matrix of all model columns | the correlations ("coefficients depend on how the predictors overlap") | b, SE, t, p, CI per term; R², F, df, model p (n only when k is known) | — | level, R² convention, factor coding |
+| Moderation | as multiple regression | + moments of the product X·Z | the X·Z moments ("cannot be derived from X and Z summaries") | as multiple regression | — | level, R² convention, centering, coding |
+| Simple mediation | a, b, c, c′ (b, SE, t, p, CI each), a·b, its CI, n, M, SD of X, M, Y | n, M, SD and correlations of X, M, Y | the correlations of X, M, Y | a, b, c, c′ (b, SE, t, p, CI each) | a·b and its CI ("inferred by bootstrap, which resamples cases; summaries cannot") | level |
 
 Triage-only in v1 (a verdict and advice, no appendix or check). Verdicts follow the three-condition rule in §3 (`decisions/0004`); "fails" names the condition that moves a row down.
 
@@ -156,7 +156,7 @@ Each analysis type is a handler that defines: how to triage, what to store, how 
 | `coverage_table()` | share | the one coverage table (§4), generated from the registry (`decisions/0013`) |
 | `synthesize()` | share | (later) synthetic data via synthpop + utility report |
 | `check_reported()` | check | the engine: evaluates every relation whose inputs are reported, returns a status per number, a coverage level and what is missing |
-| `check_*()` | check | thin wrappers around `check_reported()`, from reported numbers only: `check_t()`, `check_r()`, `check_F()` and `check_chisq()` exist (`decisions/0015`, `decisions/0016`); `check_lm()` and `check_mediation()` come with the regression family (`decisions/0020`). A reported CI is checked inside its test's wrapper, not by a wrapper of its own |
+| `check_*()` | check | thin wrappers around `check_reported()`, from reported numbers only: `check_t()`, `check_r()`, `check_F()`, `check_chisq()`, `check_lm()` and `check_mediation()` exist (`decisions/0015`, `decisions/0016`, `decisions/0020`). A reported CI is checked inside its test's wrapper, not by a wrapper of its own |
 
 ## 6. Check direction: rules
 
@@ -249,7 +249,7 @@ Prior art to cite: statcheck (Nuijten & Epskamp), JATSdecoder `get.stats()` (Bö
 3. ✅ `coverage_table()` rewrite on the existing handlers: rename `reproducible` → `sufficient`, add `not_checkable` and `choices`, the computed missing/checkable columns and the package test (`decisions/0013`). Stop for review.
 4. ✅ `appendix()` with the four blocks, snapshot tests (the four handlers that existed then: one-sample, independent and paired t; Pearson).
 5. ✅ χ² (independence, goodness of fit), one-way and factorial ANOVA handlers, each with relations and validation. Done so far: one-way ANOVA and `check_F()` (`decisions/0015`); χ² independence and goodness of fit and `check_chisq()` (`decisions/0016`, `decisions/0021`); two-factor between ANOVA through `check_F(effect =)` (`decisions/0017`, `decisions/0019`, `decisions/0022`).
-6. Regression family (simple, multiple, moderation, mediation), per `decisions/0020`.
+6. ✅ Regression family (simple, multiple, moderation, mediation) with `check_lm()` and `check_mediation()`, per `decisions/0020`.
 7. Release v1: README with the generated table, vignette, app share module, NEWS, tag.
 8. Shiny app tabs + scenario cards; shinylive deployment via GitHub Actions.
 9. (v2) synthetic route; random-intercept model.

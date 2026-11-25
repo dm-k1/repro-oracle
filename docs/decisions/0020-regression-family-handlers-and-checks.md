@@ -108,6 +108,12 @@ Adjusted R², β and centering do not falsify.
    None of them can falsify from reported numbers. Centering changes the lower-order b but not the
    interaction b, and the check uses no relation that depends on it. The choices go to the
    appendix and to reproduce.
+
+   *Amended 2026-11-25:* "unchanged" covers the substantive choices above only. Like the other
+   rows, the three lm rows also declare the CI level (ADR 0014) and the R² convention (point 6).
+   Mediation declares the CI level, because point 7 checks each path's CI; its checkable column
+   reads "a, b, c, c′ (b, SE, t, p, CI each)". Plan §4 is updated to match the generated rows, and
+   the plan-edit list under Consequences is superseded on these two points.
 9. **Each handler carries the source comment of ADR 0018 point 2**, saying which part of `apa` is
    JARS and which is §3.7.
 10. **Not in v1:**
